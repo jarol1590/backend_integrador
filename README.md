@@ -1,24 +1,18 @@
 # BackendIntegrador
 
-API backend en **.NET 8** organizada con **Clean Architecture** (arquitectura limpia). El objetivo es separar reglas de negocio, casos de uso, detalles técnicos y la interfaz HTTP para que el código sea más mantenible y testeable.
+API REST en .NET 8 construida con Clean Architecture para gestionar el flujo de trazabilidad y calidad del proceso lechero:
+usuarios, roles, productores, fincas, ordenos, lotes, transporte, recepcion en acopio y analisis de calidad.
 
-## Estructura del repositorio
+## Arquitectura
 
-```
-BackendIntegrador/
-├── src/
-│   ├── BackendIntegrador.Domain/        # Núcleo: entidades y reglas puras
-│   ├── BackendIntegrador.Application/   # Casos de uso y contratos (interfaces)
-│   ├── BackendIntegrador.Infrastructure/# Implementaciones (BD, APIs externas, etc.)
-│   └── BackendIntegrador.Api/           # Punto de entrada: HTTP, Swagger, DI
-├── BackendIntegrador.sln
-├── README.md
-└── .gitignore
-```
+El proyecto sigue una separacion por capas:
 
-## Capas y dependencias
+- `BackendIntegrador.Domain`: entidades y reglas de dominio.
+- `BackendIntegrador.Application`: contratos (interfaces) y DTOs de aplicacion.
+- `BackendIntegrador.Infrastructure`: implementaciones de persistencia (EF Core + SQLite), repositorio generico y servicios CRUD.
+- `BackendIntegrador.Api`: controladores HTTP, configuracion de DI y Swagger.
 
-Las flechas indican **hacia quién puede depender cada proyecto** (solo hacia adentro del círculo):
+Dependencias permitidas:
 
 ```mermaid
 flowchart TB
@@ -34,27 +28,78 @@ flowchart TB
     App --> Dom
 ```
 
-| Proyecto | Rol |
-|----------|-----|
-| **Domain** | Entidades y lógica de dominio sin dependencias de frameworks. No referencia otros proyectos de la solución. |
-| **Application** | Define *qué* hace el sistema: interfaces de repositorios/servicios, DTOs, validaciones de aplicación. Depende solo de **Domain**. |
-| **Infrastructure** | *Cómo* se cumplen los contratos: Entity Framework, clientes HTTP, colas, implementaciones concretas. Depende de **Application** y **Domain**. |
-| **Api** | ASP.NET Core: controladores, `Program.cs`, configuración HTTP y registro de servicios (incluye extensiones como `AddInfrastructure()`). Depende de **Application** e **Infrastructure**. |
+## Modelo de datos implementado
 
-La **Api** no debe contener lógica de negocio compleja: delega en servicios o casos de uso definidos en **Application**, que a su vez usan abstracciones implementadas en **Infrastructure**.
+Entidades principales:
 
-## Ejemplo incluido
+- `Usuario`
+- `Rol`
+- `UsuarioRol` (relacion N:M con llave compuesta)
+- `Departamento`
+- `Municipio`
+- `CentroAcopio`
+- `TipoDocumento`
+- `Productor`
+- `Finca`
+- `Ordeno`
+- `Transporte`
+- `Lote`
+- `RecepcionAcopio`
+- `Muestra`
+- `AnalisisCalidad`
+- `ParametroCalidad`
+- `ResultadoParametro` (relacion N:M con llave compuesta)
 
-El template de **WeatherForecast** sirve de guía:
+## CRUD disponible
 
-- La entidad vive en **Domain** (`Entities/WeatherForecast`).
-- El contrato `IWeatherForecastProvider` está en **Application** (`Abstractions/`).
-- La implementación con datos aleatorios está en **Infrastructure** (`Weather/RandomWeatherForecastProvider`).
-- El controlador en **Api** solo orquesta la petición HTTP y llama al proveedor inyectado.
+Cada entidad con llave entera tiene CRUD completo (`GET all`, `GET by id`, `POST`, `PUT`, `DELETE`) bajo `/api/*`.
 
-## Cómo ejecutar
+Controladores:
 
-Desde la raíz del repositorio:
+- `/api/usuarios`
+- `/api/roles`
+- `/api/departamentos`
+- `/api/municipios`
+- `/api/centros-acopio`
+- `/api/tipos-documento`
+- `/api/productores`
+- `/api/fincas`
+- `/api/ordenos`
+- `/api/transportes`
+- `/api/lotes`
+- `/api/recepciones-acopio`
+- `/api/muestras`
+- `/api/analisis-calidad`
+- `/api/parametros-calidad`
+
+Relaciones con llave compuesta:
+
+- `/api/usuario-roles`
+  - `GET /api/usuario-roles`
+  - `GET /api/usuario-roles/{usuarioId}/{rolId}`
+  - `POST /api/usuario-roles`
+  - `DELETE /api/usuario-roles/{usuarioId}/{rolId}`
+
+- `/api/resultados-parametro`
+  - `GET /api/resultados-parametro`
+  - `GET /api/resultados-parametro/{analisisId}/{parametroId}`
+  - `POST /api/resultados-parametro`
+  - `PUT /api/resultados-parametro/{analisisId}/{parametroId}`
+  - `DELETE /api/resultados-parametro/{analisisId}/{parametroId}`
+
+## Persistencia
+
+Se utiliza EF Core con SQLite:
+
+- `DbContext`: `AppDbContext`
+- Cadena de conexion por defecto en `src/BackendIntegrador.Api/appsettings.json`:
+  - `ConnectionStrings:DefaultConnection = Data Source=integrador.db`
+
+La API aplica migraciones al iniciar (`Database.Migrate()` en `Program.cs`).
+
+## Ejecucion local
+
+Desde la raiz del repositorio:
 
 ```bash
 dotnet restore
@@ -62,14 +107,20 @@ dotnet build
 dotnet run --project src/BackendIntegrador.Api/BackendIntegrador.Api.csproj
 ```
 
-Abre Swagger en el puerto configurado en `src/BackendIntegrador.Api/Properties/launchSettings.json` (por defecto `http://localhost:5111/swagger`).
+Swagger queda disponible en:
 
-## Próximos pasos habituales
+- `http://localhost:5111/swagger` (segun `launchSettings.json`)
 
-- Añadir **Entity Framework Core** en **Infrastructure** y repositorios que implementen interfaces de **Application**.
-- Mover reglas de negocio a entidades o servicios de dominio en **Domain**.
-- Añadir pruebas unitarias sobre **Application** y **Domain** sin levantar la web.
+## Estructura del repositorio
 
-## .gitignore
-
-El archivo `.gitignore` excluye carpetas de compilación (`bin/`, `obj/`), salidas de Visual Studio (`.vs/`), paquetes NuGet locales y otros artefactos para que no suban a GitHub.
+```text
+BackendIntegrador/
+├── src/
+│   ├── BackendIntegrador.Domain/
+│   ├── BackendIntegrador.Application/
+│   ├── BackendIntegrador.Infrastructure/
+│   └── BackendIntegrador.Api/
+├── BackendIntegrador.sln
+├── README.md
+└── .gitignore
+```
