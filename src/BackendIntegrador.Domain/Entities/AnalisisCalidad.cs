@@ -1,7 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BackendIntegrador.Domain.Entities;
 
 public class AnalisisCalidad
 {
+    [Key]
     public int AnalisisId { get; set; }
     public int MuestraId { get; set; }
     public DateTime FechaHoraAnalisis { get; set; }
