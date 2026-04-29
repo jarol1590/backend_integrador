@@ -1,7 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BackendIntegrador.Domain.Entities;
 
 public class ParametroCalidad
 {
+    [Key]
     public int ParametroId { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public string? Unidad { get; set; }
