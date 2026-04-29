@@ -1,0 +1,1901 @@
+{
+  "info": {
+    "name": "BackendIntegrador API",
+    "description": "Colección Postman para consumir todos los endpoints de la API BackendIntegrador.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "id",
+      "value": "1"
+    },
+    {
+      "key": "usuarioId",
+      "value": "1"
+    },
+    {
+      "key": "rolId",
+      "value": "1"
+    },
+    {
+      "key": "analisisId",
+      "value": "1"
+    },
+    {
+      "key": "parametroId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "GET /api/usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/usuarios/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/usuarios",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Secret123!\",\n  \"estado\": \"activo\",\n  \"centroAcopioId\": 1,\n  \"fechaCreacion\": \"2026-04-29T00:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/usuarios/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"estado\": \"activo\",\n  \"centroAcopioId\": 1,\n  \"password\": \"NewSecret123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/usuarios/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles",
+      "item": [
+        {
+          "name": "GET /api/roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/roles/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/roles/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/roles",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Admin\",\n  \"descripcion\": \"Administrador del sistema\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/roles/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Admin\",\n  \"descripcion\": \"Administrador actualizado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/roles/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/roles/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/roles/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Departamentos",
+      "item": [
+        {
+          "name": "GET /api/departamentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/departamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "departamentos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/departamentos/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/departamentos/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "departamentos",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/departamentos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Caldas\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/departamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "departamentos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/departamentos/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Caldas Actualizado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/departamentos/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "departamentos",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/departamentos/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/departamentos/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "departamentos",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Municipios",
+      "item": [
+        {
+          "name": "GET /api/municipios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/municipios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "municipios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/municipios/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/municipios/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "municipios",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/municipios",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Manizales\",\n  \"departamentoId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/municipios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "municipios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/municipios/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Manizales Centro\",\n  \"departamentoId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/municipios/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "municipios",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/municipios/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/municipios/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "municipios",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Centros de Acopio",
+      "item": [
+        {
+          "name": "GET /api/centros-acopio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/centros-acopio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "centros-acopio"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/centros-acopio/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/centros-acopio/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "centros-acopio",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/centros-acopio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Centro 1\",\n  \"direccion\": \"Calle 123\",\n  \"latitud\": 4.9,\n  \"longitud\": -75.7,\n  \"municipioId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/centros-acopio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "centros-acopio"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/centros-acopio/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Centro A\",\n  \"direccion\": \"Avenida 123\",\n  \"latitud\": 4.9,\n  \"longitud\": -75.7,\n  \"municipioId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/centros-acopio/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "centros-acopio",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/centros-acopio/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/centros-acopio/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "centros-acopio",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tipos de Documento",
+      "item": [
+        {
+          "name": "GET /api/tipos-documento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tipos-documento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tipos-documento"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/tipos-documento/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tipos-documento/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tipos-documento",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/tipos-documento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cédula\",\n  \"descripcion\": \"Documento de identidad\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tipos-documento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tipos-documento"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/tipos-documento/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cédula de ciudadanía\",\n  \"descripcion\": \"Documento actualizado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tipos-documento/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tipos-documento",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/tipos-documento/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tipos-documento/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tipos-documento",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Productores",
+      "item": [
+        {
+          "name": "GET /api/productores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/productores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "productores"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/productores/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/productores/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "productores",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/productores",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Pérez\",\n  \"documento\": \"123456789\",\n  \"telefono\": \"3001234567\",\n  \"usuarioId\": 1,\n  \"tipoDocumentoId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/productores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "productores"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/productores/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Pérez\",\n  \"documento\": \"123456789\",\n  \"telefono\": \"3007654321\",\n  \"usuarioId\": 1,\n  \"tipoDocumentoId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/productores/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "productores",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/productores/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/productores/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "productores",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fincas",
+      "item": [
+        {
+          "name": "GET /api/fincas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fincas"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/fincas/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fincas",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/fincas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Finca 1\",\n  \"direccion\": \"Vereda La Esperanza\",\n  \"latitud\": 4.9,\n  \"longitud\": -75.7,\n  \"productorId\": 1,\n  \"municipioId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fincas"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/fincas/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Finca 1\",\n  \"direccion\": \"Vereda La Esperanza 2\",\n  \"latitud\": 4.9,\n  \"longitud\": -75.7,\n  \"productorId\": 1,\n  \"municipioId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fincas",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/fincas/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fincas",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ordenos",
+      "item": [
+        {
+          "name": "GET /api/ordenos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ordenos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordenos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/ordenos/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ordenos/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordenos",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/ordenos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fechaHoraInicio\": \"2026-04-29T08:00:00Z\",\n  \"fechaHoraFin\": null,\n  \"volumenLitros\": 125.5,\n  \"fincaId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ordenos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordenos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/ordenos/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fechaHoraInicio\": \"2026-04-29T08:00:00Z\",\n  \"fechaHoraFin\": \"2026-04-29T10:00:00Z\",\n  \"volumenLitros\": 130.0,\n  \"fincaId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ordenos/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordenos",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/ordenos/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ordenos/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordenos",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transportes",
+      "item": [
+        {
+          "name": "GET /api/transportes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transportes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transportes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/transportes/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transportes/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transportes",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/transportes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placaVehiculo\": \"ABC123\",\n  \"fechaHoraSalida\": \"2026-04-29T09:00:00Z\",\n  \"fechaHoraEntrada\": null,\n  \"temperaturaInicio\": 12\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transportes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transportes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/transportes/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placaVehiculo\": \"ABC123\",\n  \"fechaHoraSalida\": \"2026-04-29T09:00:00Z\",\n  \"fechaHoraEntrada\": \"2026-04-29T12:00:00Z\",\n  \"temperaturaInicio\": 14\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transportes/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transportes",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/transportes/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transportes/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transportes",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lotes",
+      "item": [
+        {
+          "name": "GET /api/lotes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/lotes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lotes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/lotes/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/lotes/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lotes",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/lotes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ordenoId\": 1,\n  \"centroAcopioId\": 1,\n  \"volumenCapturadoLitros\": 150.5,\n  \"transporteId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/lotes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lotes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/lotes/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ordenoId\": 1,\n  \"centroAcopioId\": 1,\n  \"volumenCapturadoLitros\": 160.0,\n  \"transporteId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/lotes/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lotes",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/lotes/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/lotes/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lotes",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recepciones de Acopio",
+      "item": [
+        {
+          "name": "GET /api/recepciones-acopio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recepciones-acopio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recepciones-acopio"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/recepciones-acopio/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recepciones-acopio/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recepciones-acopio",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/recepciones-acopio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transporteId\": 1,\n  \"centroAcopioId\": 1,\n  \"fechaHoraEntrada\": \"2026-04-29T11:00:00Z\",\n  \"usuarioId\": 1,\n  \"temperaturaRecepcion\": 10,\n  \"volumenLitrosRecibidos\": 250.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recepciones-acopio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recepciones-acopio"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/recepciones-acopio/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transporteId\": 1,\n  \"centroAcopioId\": 1,\n  \"fechaHoraEntrada\": \"2026-04-29T11:30:00Z\",\n  \"usuarioId\": 1,\n  \"temperaturaRecepcion\": 11,\n  \"volumenLitrosRecibidos\": 255.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recepciones-acopio/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recepciones-acopio",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/recepciones-acopio/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recepciones-acopio/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recepciones-acopio",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Muestras",
+      "item": [
+        {
+          "name": "GET /api/muestras",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/muestras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "muestras"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/muestras/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/muestras/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "muestras",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/muestras",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loteId\": 1,\n  \"tecnicoPorUsuarioId\": 1,\n  \"fechaHoraToma\": \"2026-04-29T11:30:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/muestras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "muestras"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/muestras/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loteId\": 1,\n  \"tecnicoPorUsuarioId\": 1,\n  \"fechaHoraToma\": \"2026-04-29T12:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/muestras/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "muestras",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/muestras/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/muestras/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "muestras",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Análisis de Calidad",
+      "item": [
+        {
+          "name": "GET /api/analisis-calidad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analisis-calidad",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analisis-calidad"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/analisis-calidad/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analisis-calidad/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analisis-calidad",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/analisis-calidad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"muestraId\": 1,\n  \"fechaHoraAnalisis\": \"2026-04-29T13:00:00Z\",\n  \"observaciones\": \"Análisis inicial\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/analisis-calidad",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analisis-calidad"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/analisis-calidad/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"muestraId\": 1,\n  \"fechaHoraAnalisis\": \"2026-04-29T14:00:00Z\",\n  \"observaciones\": \"Observaciones actualizadas\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/analisis-calidad/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analisis-calidad",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/analisis-calidad/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analisis-calidad/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analisis-calidad",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parámetros de Calidad",
+      "item": [
+        {
+          "name": "GET /api/parametros-calidad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/parametros-calidad",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "parametros-calidad"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/parametros-calidad/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/parametros-calidad/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "parametros-calidad",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/parametros-calidad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Acidez\",\n  \"unidad\": \"pH\",\n  \"valorMinimo\": 4.5,\n  \"valorMaximo\": 7.5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/parametros-calidad",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "parametros-calidad"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/parametros-calidad/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Acidez\",\n  \"unidad\": \"pH\",\n  \"valorMinimo\": 4.0,\n  \"valorMaximo\": 8.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/parametros-calidad/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "parametros-calidad",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/parametros-calidad/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/parametros-calidad/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "parametros-calidad",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Resultados de Parámetro",
+      "item": [
+        {
+          "name": "GET /api/resultados-parametro",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resultados-parametro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "resultados-parametro"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/resultados-parametro/:analisisId/:parametroId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resultados-parametro/{{analisisId}}/{{parametroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "resultados-parametro",
+                "{{analisisId}}",
+                "{{parametroId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/resultados-parametro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"analisisId\": 1,\n  \"parametroId\": 1,\n  \"valorResultado\": 5.5,\n  \"observacion\": \"Dentro de rango\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/resultados-parametro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "resultados-parametro"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/resultados-parametro/:analisisId/:parametroId",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valorResultado\": 5.8,\n  \"observacion\": \"Ajustado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/resultados-parametro/{{analisisId}}/{{parametroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "resultados-parametro",
+                "{{analisisId}}",
+                "{{parametroId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/resultados-parametro/:analisisId/:parametroId",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resultados-parametro/{{analisisId}}/{{parametroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "resultados-parametro",
+                "{{analisisId}}",
+                "{{parametroId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usuario Roles",
+      "item": [
+        {
+          "name": "GET /api/usuario-roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuario-roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuario-roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/usuario-roles/:usuarioId/:rolId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuario-roles/{{usuarioId}}/{{rolId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuario-roles",
+                "{{usuarioId}}",
+                "{{rolId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/usuario-roles",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": 1,\n  \"rolId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuario-roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuario-roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/usuario-roles/:usuarioId/:rolId",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuario-roles/{{usuarioId}}/{{rolId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuario-roles",
+                "{{usuarioId}}",
+                "{{rolId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
