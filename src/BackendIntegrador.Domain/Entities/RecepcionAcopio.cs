@@ -1,7 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BackendIntegrador.Domain.Entities;
 
 public class RecepcionAcopio
 {
+    [Key]
     public int RecepcionId { get; set; }
     public int TransporteId { get; set; }
     public int CentroAcopioId { get; set; }
