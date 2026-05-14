@@ -1,8 +1,10 @@
 using BackendIntegrador.Application.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackendIntegrador.Api.Controllers;
 
+[Authorize]
 public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : ControllerBase
     where TRead : class
 {
@@ -16,25 +18,25 @@ public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : Contro
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<TRead>>> GetAll(CancellationToken cancellationToken)
+    public virtual async Task<ActionResult<IReadOnlyList<TRead>>> GetAll(CancellationToken cancellationToken)
         => Ok(await _svc.GetAllAsync(cancellationToken));
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<TRead>> GetById(int id, CancellationToken cancellationToken)
+    public virtual async Task<ActionResult<TRead>> GetById(int id, CancellationToken cancellationToken)
     {
         var item = await _svc.GetByIdAsync(id, cancellationToken);
         return item is null ? NotFound() : Ok(item);
     }
 
     [HttpPost]
-    public async Task<ActionResult<TRead>> Create([FromBody] TCreate dto, CancellationToken cancellationToken)
+    public virtual async Task<ActionResult<TRead>> Create([FromBody] TCreate dto, CancellationToken cancellationToken)
     {
         var created = await _svc.CreateAsync(dto, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = _readId(created) }, created);
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] TUpdate dto, CancellationToken cancellationToken)
+    public virtual async Task<IActionResult> Update(int id, [FromBody] TUpdate dto, CancellationToken cancellationToken)
     {
         try
         {
@@ -48,7 +50,7 @@ public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : Contro
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    public virtual async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
         try
         {

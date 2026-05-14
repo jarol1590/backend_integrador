@@ -4,6 +4,9 @@ public record UsuarioDto(int UsuarioId, string Email, string Estado, DateTime Fe
 public record CreateUsuarioDto(string Email, string Password, string Estado, int? CentroAcopioId);
 public record UpdateUsuarioDto(string Email, string Estado, int? CentroAcopioId, string? Password);
 
+public record LoginDto(string Email, string Password);
+public record AuthResponseDto(string AccessToken, UsuarioDto Usuario);
+
 public record RolDto(int RolId, string Nombre, string? Descripcion);
 public record CreateRolDto(string Nombre, string? Descripcion);
 public record UpdateRolDto(string Nombre, string? Descripcion);
