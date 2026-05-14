@@ -29,7 +29,7 @@ internal sealed class UsuarioCrudService : ICrudService<UsuarioDto, CreateUsuari
             Email = dto.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Estado = dto.Estado,
-            FechaCreacion = dto.FechaCreacion ?? DateTime.UtcNow,
+            FechaCreacion = DateTime.UtcNow,
             CentroAcopioId = dto.CentroAcopioId,
         };
         await _repo.AddAsync(entity, cancellationToken);

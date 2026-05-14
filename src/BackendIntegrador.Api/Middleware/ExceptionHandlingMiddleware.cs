@@ -33,15 +33,22 @@ public class ExceptionHandlingMiddleware
         {
             ArgumentException or ArgumentNullException or InvalidOperationException => HttpStatusCode.BadRequest,
             KeyNotFoundException => HttpStatusCode.NotFound,
+            Microsoft.EntityFrameworkCore.DbUpdateException dbEx when dbEx.InnerException?.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase) == true 
+                                                                     || dbEx.InnerException?.Message.Contains("unique", StringComparison.OrdinalIgnoreCase) == true 
+                                                                     || dbEx.InnerException?.Message.Contains("Violation of UNIQUE KEY constraint") == true => HttpStatusCode.BadRequest,
             _ => HttpStatusCode.InternalServerError
         };
+
+        var errorMessage = statusCode == HttpStatusCode.BadRequest && exception is Microsoft.EntityFrameworkCore.DbUpdateException
+            ? "El registro ya existe o viola una restricción de unicidad."
+            : exception.Message;
 
         var response = new ApiResponse<object>
         {
             success = false,
             status = statusCode,
             method = context.Request.Method,
-            errors = exception.Message,
+            errors = errorMessage,
             response = null
         };
 

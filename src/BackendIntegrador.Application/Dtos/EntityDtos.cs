@@ -1,7 +1,7 @@
 namespace BackendIntegrador.Application.Dtos;
 
 public record UsuarioDto(int UsuarioId, string Email, string Estado, DateTime FechaCreacion, int? CentroAcopioId);
-public record CreateUsuarioDto(string Email, string Password, string Estado, int? CentroAcopioId, DateTime? FechaCreacion);
+public record CreateUsuarioDto(string Email, string Password, string Estado, int? CentroAcopioId);
 public record UpdateUsuarioDto(string Email, string Estado, int? CentroAcopioId, string? Password);
 
 public record RolDto(int RolId, string Nombre, string? Descripcion);
