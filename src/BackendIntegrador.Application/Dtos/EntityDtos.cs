@@ -6,6 +6,8 @@ public record UpdateUsuarioDto(string Email, string Estado, int? CentroAcopioId,
 
 public record LoginDto(string Email, string Password);
 public record AuthResponseDto(string AccessToken, UsuarioDto Usuario);
+public record ChangePasswordDto(string CurrentPassword, string NewPassword);
+public record ResetPasswordDto(string NewPassword);
 
 public record RolDto(int RolId, string Nombre, string? Descripcion);
 public record CreateRolDto(string Nombre, string? Descripcion);

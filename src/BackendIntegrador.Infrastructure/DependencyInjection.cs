@@ -39,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<IUsuarioRolService, UsuarioRolService>();
         services.AddScoped<IResultadoParametroService, ResultadoParametroService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IUserManagementService, UserManagementService>();
 
         return services;
     }

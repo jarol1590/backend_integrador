@@ -24,14 +24,36 @@ internal sealed class AuthenticationService : IAuthenticationService
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+            throw new InvalidOperationException("Email y contraseña son requeridos.");
+
         var usuarios = await _usuarioRepo.GetAllAsync(cancellationToken);
         var usuario = usuarios.FirstOrDefault(u => u.Email == dto.Email);
 
-        if (usuario is null || !BCrypt.Net.BCrypt.Verify(dto.Password, usuario.PasswordHash))
-            throw new UnauthorizedAccessException("Credenciales inválidas.");
+        if (usuario is null)
+            throw new InvalidOperationException("Credenciales inválidas.");
+
+        // Validar que el PasswordHash no esté vacío
+        if (string.IsNullOrWhiteSpace(usuario.PasswordHash))
+            throw new InvalidOperationException("El usuario no tiene una contraseña válida configurada.");
+
+        // Intentar verificar la contraseña de forma segura
+        bool passwordValid = false;
+        try
+        {
+            passwordValid = BCrypt.Net.BCrypt.Verify(dto.Password, usuario.PasswordHash);
+        }
+        catch (Exception ex)
+        {
+            // Si hay error en BCrypt (ej: hash inválido), lanzar error
+            throw new InvalidOperationException("Error al validar la contraseña. Por favor, intente de nuevo.", ex);
+        }
+
+        if (!passwordValid)
+            throw new InvalidOperationException("Credenciales inválidas.");
 
         if (usuario.Estado != "activo")
-            throw new UnauthorizedAccessException("El usuario no está activo.");
+            throw new InvalidOperationException("El usuario no está activo.");
 
         var token = GenerateJwtToken(usuario);
 
