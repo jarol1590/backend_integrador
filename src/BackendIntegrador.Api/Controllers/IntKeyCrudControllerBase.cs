@@ -31,8 +31,33 @@ public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : Contro
     [HttpPost]
     public virtual async Task<ActionResult<TRead>> Create([FromBody] TCreate dto, CancellationToken cancellationToken)
     {
-        var created = await _svc.CreateAsync(dto, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = _readId(created) }, created);
+        try
+        {
+            var created = await _svc.CreateAsync(dto, cancellationToken);
+            var response = new
+            {
+                message = "Creación exitosa",
+                data = created,
+                status = 201
+            };
+            return CreatedAtAction(nameof(GetById), new { id = _readId(created) }, response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message,
+                status = 400
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = "Error interno del servidor",
+                status = ex.Message
+            });
+        }
     }
 
     [HttpPut("{id:int}")]
