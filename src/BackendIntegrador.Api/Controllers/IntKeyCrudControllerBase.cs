@@ -17,6 +17,13 @@ public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : Contro
         _readId = readId;
     }
 
+    protected virtual string GetCreateSuccessMessage() => "Registro creado correctamente";
+
+    protected virtual string GetUpdateSuccessMessage() => "Registro actualizado correctamente";
+
+    protected virtual string GetDeleteSuccessMessage() => "Registro eliminado correctamente";
+
+
     [HttpGet]
     public virtual async Task<ActionResult<IReadOnlyList<TRead>>> GetAll(CancellationToken cancellationToken)
         => Ok(await _svc.GetAllAsync(cancellationToken));
@@ -24,8 +31,19 @@ public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : Contro
     [HttpGet("{id:int}")]
     public virtual async Task<ActionResult<TRead>> GetById(int id, CancellationToken cancellationToken)
     {
-        var item = await _svc.GetByIdAsync(id, cancellationToken);
-        return item is null ? NotFound() : Ok(item);
+        try        {
+            var item = await _svc.GetByIdAsync(id, cancellationToken);
+            return item is null ? NotFound() : Ok(item);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = "Error interno del servidor",
+                status = ex.Message
+            });
+        }
+            
     }
 
     [HttpPost]
@@ -36,7 +54,7 @@ public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : Contro
             var created = await _svc.CreateAsync(dto, cancellationToken);
             var response = new
             {
-                message = "Creación exitosa",
+                message = GetCreateSuccessMessage(),
                 data = created,
                 status = 201
             };
@@ -66,11 +84,36 @@ public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : Contro
         try
         {
             await _svc.UpdateAsync(id, dto, cancellationToken);
-            return NoContent();
+
+            var response = new
+            {
+                message = GetUpdateSuccessMessage(),
+                status = 200
+            };
+            return Ok(response);
         }
         catch (KeyNotFoundException)
         {
-            return NotFound();
+            return NotFound(new
+            {
+                message = "Registro no encontrado",
+                status = 404
+            });
+        }catch (InvalidOperationException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message,
+                status = 400
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = "Error interno del servidor",
+                status = ex.Message
+            });
         }
     }
 
@@ -80,11 +123,27 @@ public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : Contro
         try
         {
             await _svc.DeleteAsync(id, cancellationToken);
-            return NoContent();
+            var response = new
+            {
+                message = GetDeleteSuccessMessage(),
+                status = 204
+            };
+            return Ok(response);
         }
         catch (KeyNotFoundException)
         {
-            return NotFound();
+            return NotFound(new
+            {
+                message = "Registro no encontrado",
+                status = 404
+            });
+        }catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = "Error interno del servidor",
+                status = ex.Message
+            });
         }
     }
 }
