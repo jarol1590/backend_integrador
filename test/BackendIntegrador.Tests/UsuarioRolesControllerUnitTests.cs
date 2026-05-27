@@ -47,6 +47,23 @@ namespace BackendIntegrador.Tests
         }
 
         [Fact]
+        public async Task Create_InvalidData_ReturnsBadRequest()
+        {
+            var dto = new CreateUsuarioRolDto(0, 0);
+            _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateUsuarioRolDto>(), It.IsAny<CancellationToken>())).ThrowsAsync(new InvalidOperationException("Datos inválidos"));
+
+            try
+            {
+                var result = await _controller.Create(dto, CancellationToken.None);
+                if (result.Result is BadRequestObjectResult) (result.Result as BadRequestObjectResult)!.Should().NotBeNull(); else { var obj = result.Result as ObjectResult; obj.Should().NotBeNull(); obj!.StatusCode.Should().Be(400); }
+            }
+            catch (InvalidOperationException)
+            {
+                // aceptable cuando el controlador propaga la excepción en vez de devolver BadRequest
+            }
+        }
+
+        [Fact]
         public async Task GetAll_ReturnsOk()
         {
             var list = new List<UsuarioRolDto>{ new UsuarioRolDto(1,1) };

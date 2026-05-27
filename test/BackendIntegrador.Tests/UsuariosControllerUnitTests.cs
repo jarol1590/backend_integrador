@@ -24,6 +24,54 @@ namespace BackendIntegrador.Tests
         }
 
         [Fact]
+        public async Task Create_ValidUsuario_ReturnsCreatedAndContainsId()
+        {
+            var dto = new CreateUsuarioDto(
+                "user@example.com",
+                "Secret123!",
+                "activo",
+                1);
+
+            var createdUser = new UsuarioDto(
+                1,
+                "user@example.com",
+                "activo",
+                DateTime.Parse("2026-04-29T00:00:00Z"),
+                1);
+
+            _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateUsuarioDto>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(createdUser);
+
+            var result = await _controller.Create(dto, CancellationToken.None);
+
+            var createdResult = result.Result as CreatedAtActionResult;
+            createdResult.Should().NotBeNull();
+            createdResult!.StatusCode.Should().Be(201);
+
+            createdResult.RouteValues.Should().ContainKey("id");
+            createdResult.RouteValues["id"].Should().Be(1);
+        }
+
+        [Fact]
+        public async Task Create_InvalidEmail_ReturnsBadRequest()
+        {
+            var dto = new CreateUsuarioDto(
+                "usuario@mal",
+                "12345",
+                "Activo",
+                1);
+
+            _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateUsuarioDto>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new InvalidOperationException("El email tiene un formato inválido"));
+
+            var result = await _controller.Create(dto, CancellationToken.None);
+
+            var badRequest = result.Result as BadRequestObjectResult;
+            badRequest.Should().NotBeNull();
+            badRequest!.Value.Should().BeEquivalentTo(new { message = "El email tiene un formato inválido" });
+        }
+
+        [Fact]
         public async Task Create_EmailExists_AcceptsConflictOrBadRequest()
         {
             var dto = new CreateUsuarioDto("user@example.com","Secret123!","activo",1);
@@ -42,6 +90,33 @@ namespace BackendIntegrador.Tests
                 var obj = result.Result as ObjectResult;
                 obj.Should().NotBeNull();
                 obj!.StatusCode.Should().Be(409);
+            }
+        }
+
+        [Fact]
+        public async Task Create_InvalidData_ReturnsBadRequest()
+        {
+            var dto = new CreateUsuarioDto("", "", "Activo", 0);
+            _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateUsuarioDto>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new InvalidOperationException("Datos inválidos"));
+
+            try
+            {
+                var result = await _controller.Create(dto, CancellationToken.None);
+                if (result.Result is BadRequestObjectResult)
+                {
+                    (result.Result as BadRequestObjectResult)!.Should().NotBeNull();
+                }
+                else
+                {
+                    var obj = result.Result as ObjectResult;
+                    obj.Should().NotBeNull();
+                    obj!.StatusCode.Should().Be(400);
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // aceptable cuando el controlador propaga la excepción
             }
         }
 

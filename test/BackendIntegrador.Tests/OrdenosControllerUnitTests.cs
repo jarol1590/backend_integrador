@@ -33,6 +33,15 @@ namespace BackendIntegrador.Tests
         }
 
         [Fact]
+        public async Task Create_InvalidData_ReturnsBadRequest()
+        {
+            var dto = new CreateOrdenoDto(DateTime.UtcNow, null, 0m, 0);
+            _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateOrdenoDto>(), It.IsAny<CancellationToken>())).ThrowsAsync(new System.InvalidOperationException("Datos inválidos"));
+            var result = await _controller.Create(dto, CancellationToken.None);
+            if (result.Result is BadRequestObjectResult) (result.Result as BadRequestObjectResult)!.Should().NotBeNull(); else { var obj = result.Result as ObjectResult; obj.Should().NotBeNull(); obj!.StatusCode.Should().Be(400); }
+        }
+
+        [Fact]
         public async Task GetAll_ReturnsOk()
         {
             var list = new List<OrdenoDto>{ new OrdenoDto(1, DateTime.UtcNow, null, 5m, 1) };
