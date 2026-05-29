@@ -22,7 +22,11 @@ namespace BackendIntegrador.Tests
             _mockSvc = new Mock<ICrudService<UsuarioDto, CreateUsuarioDto, UpdateUsuarioDto>>();
             _controller = new UsuariosController(_mockSvc.Object);
         }
-
+        /*
+        Prueba de creación de usuario con datos válidos, 
+        verificando que se devuelve un CreatedAtActionResult 
+        con el ID del nuevo usuario.
+        */
         [Fact]
         public async Task Create_ValidUsuario_ReturnsCreatedAndContainsId()
         {
