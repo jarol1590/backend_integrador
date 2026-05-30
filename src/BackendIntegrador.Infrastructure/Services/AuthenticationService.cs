@@ -123,11 +123,11 @@ internal sealed class AuthenticationService : IAuthenticationService
 
         var usuario = await _usuarioRepo.FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
         if (usuario is null)
-            throw new InvalidOperationException("No se encontró un usuario con ese email.");
+            return; // No revelar que el email no existe
 
         var resetToken = GeneratePasswordResetToken(usuario);
 
-        var link = $"http://localhost:5111/reset-password?token={resetToken}"; //Está quemado hay que corregirlo
+        //var link = $"http://localhost:5111/reset-password?token={resetToken}"; //Está quemado hay que corregirlo
 
         /*await _emailService.SendAsync(
             usuario.Email,
@@ -144,6 +144,7 @@ internal sealed class AuthenticationService : IAuthenticationService
         */
 
         Console.WriteLine($"[Simulación de envío de email] Enviar a: {usuario.Email}");
+        Console.WriteLine($"Token: {resetToken}");
     }
 
     private ClaimsPrincipal ValidatePasswordResetToken(string token)
@@ -173,7 +174,7 @@ internal sealed class AuthenticationService : IAuthenticationService
 
         var purpose = principal.FindFirst("purpose")?.Value;
 
-        if (purpose != "password-reset")
+        if (purpose != "password_reset")
             throw new InvalidOperationException(
                 "Token inválido para recuperación.");
 
