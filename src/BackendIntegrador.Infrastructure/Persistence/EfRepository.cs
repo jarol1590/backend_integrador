@@ -1,5 +1,6 @@
 using BackendIntegrador.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace BackendIntegrador.Infrastructure.Persistence;
 
@@ -14,6 +15,9 @@ public sealed class EfRepository<TEntity> : IRepository<TEntity> where TEntity :
 
     public async Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default) =>
         await _db.Set<TEntity>().AsNoTracking().ToListAsync(cancellationToken);
+
+    public async Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default) =>
+        await _db.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync(predicate, cancellationToken);
 
     public async Task AddAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
