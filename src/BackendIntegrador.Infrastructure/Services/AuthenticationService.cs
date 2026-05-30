@@ -13,13 +13,16 @@ internal sealed class AuthenticationService : IAuthenticationService
 {
     private readonly IRepository<Usuario> _usuarioRepo;
     private readonly JwtSettings _jwtSettings;
+    private readonly IEmailService _emailService;
 
     public AuthenticationService(
         IRepository<Usuario> usuarioRepo,
-        JwtSettings jwtSettings)
+        JwtSettings jwtSettings,
+        IEmailService emailService)
     {
         _usuarioRepo = usuarioRepo;
         _jwtSettings = jwtSettings;
+        _emailService = emailService;
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto, CancellationToken cancellationToken = default)
@@ -27,7 +30,7 @@ internal sealed class AuthenticationService : IAuthenticationService
         if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
             throw new InvalidOperationException("Email y contraseña son requeridos.");
 
-            var usuario = await _usuarioRepo.FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
+        var usuario = await _usuarioRepo.FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
 
         if (usuario is null)
             throw new InvalidOperationException("Credenciales inválidas.");
@@ -113,58 +116,102 @@ internal sealed class AuthenticationService : IAuthenticationService
         return tokenHandler.WriteToken(token);
     }
 
-        public async Task ForgotPasswordAsync(ForgotPasswordDto dto, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrWhiteSpace(dto.Email))
-                throw new InvalidOperationException("Email es requerido.");
-    
-            var usuario = await _usuarioRepo.FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
-            if (usuario is null)
-                throw new InvalidOperationException("No se encontró un usuario con ese email.");
-    
-            var resetToken = GeneratePasswordResetToken(usuario);
-    
-            // Aquí deberías enviar el resetToken por email al usuario
-            // Por simplicidad, solo lo retornaremos (en producción no harías esto)
-            Console.WriteLine($"Token de restablecimiento para {usuario.Email}: {resetToken}");
-        }
+    public async Task ForgotPasswordAsync(ForgotPasswordDto dto, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email))
+            throw new InvalidOperationException("Email es requerido.");
 
-        public async Task ResetPasswordAsync(ResetPasswordDto dto, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.NewPassword))
-                throw new InvalidOperationException("Token y nueva contraseña son requeridos.");
-    
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
-    
-            try
+        var usuario = await _usuarioRepo.FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
+        if (usuario is null)
+            throw new InvalidOperationException("No se encontró un usuario con ese email.");
+
+        var resetToken = GeneratePasswordResetToken(usuario);
+
+        var link = $"http://localhost:5111/reset-password?token={resetToken}"; //Está quemado hay que corregirlo
+
+        /*await _emailService.SendAsync(
+            usuario.Email,
+            "Recuperación de contraseña",
+            $"""
+                <h2>Recuperación de contraseña</h2>
+
+                <p>Haz clic en el siguiente enlace:</p>
+
+                <a href="{link}">
+                    Restablecer contraseña
+                </a>
+                """);
+        */
+
+        Console.WriteLine($"[Simulación de envío de email] Enviar a: {usuario.Email}");
+    }
+
+    private ClaimsPrincipal ValidatePasswordResetToken(string token)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+
+        var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
+
+        var principal = tokenHandler.ValidateToken(
+            token,
+            new TokenValidationParameters
             {
-                var principal = tokenHandler.ValidateToken(dto.Token, new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = _jwtSettings.Issuer,
-                    ValidAudience = _jwtSettings.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
-                }, out SecurityToken validatedToken);
-    
-                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim is null)
-                    throw new InvalidOperationException("Token inválido.");
-    
-                int userId = int.Parse(userIdClaim.Value);
-                var usuario = await _usuarioRepo.FindAsync(new object[] { userId }, cancellationToken);
-                if (usuario is null)
-                    throw new InvalidOperationException("Usuario no encontrado.");
-    
-                usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-                await _usuarioRepo.UpdateAsync(usuario, cancellationToken);
-            }
-            catch (SecurityTokenException ex)
-            {
-                throw new InvalidOperationException("Token inválido o expirado.", ex);
-            }
-        }
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+
+                ValidateIssuer = true,
+                ValidIssuer = _jwtSettings.Issuer,
+
+                ValidateAudience = true,
+                ValidAudience = _jwtSettings.Audience,
+
+                ValidateLifetime = true,
+
+                ClockSkew = TimeSpan.Zero
+            },
+            out _);
+
+        var purpose = principal.FindFirst("purpose")?.Value;
+
+        if (purpose != "password-reset")
+            throw new InvalidOperationException(
+                "Token inválido para recuperación.");
+
+        return principal;
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordDto dto, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.NewPassword))
+            throw new InvalidOperationException("Token y nueva contraseña son requeridos.");
+
+        var principal = ValidatePasswordResetToken(dto.Token);
+        var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //var tokenHandler = new JwtSecurityTokenHandler();
+        //var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
+
+        if (!int.TryParse(userId, out var usuarioId))
+            throw new InvalidOperationException(
+                "Token inválido.");
+
+        var usuario =
+            await _usuarioRepo.FindAsync(
+                new object[] { usuarioId },
+                cancellationToken);
+
+        if (usuario is null)
+            throw new InvalidOperationException(
+                "Usuario no encontrado.");
+
+        usuario.PasswordHash =
+            BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+        await _usuarioRepo.UpdateAsync(
+            usuario,
+            cancellationToken);
+
+
+    }
+
+
 }
