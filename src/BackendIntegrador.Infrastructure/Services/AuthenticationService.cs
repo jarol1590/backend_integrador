@@ -27,8 +27,7 @@ internal sealed class AuthenticationService : IAuthenticationService
         if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
             throw new InvalidOperationException("Email y contraseña son requeridos.");
 
-        var usuarios = await _usuarioRepo.GetAllAsync(cancellationToken);
-        var usuario = usuarios.FirstOrDefault(u => u.Email == dto.Email);
+            var usuario = await _usuarioRepo.FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
 
         if (usuario is null)
             throw new InvalidOperationException("Credenciales inválidas.");
