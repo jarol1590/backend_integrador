@@ -85,4 +85,86 @@ internal sealed class AuthenticationService : IAuthenticationService
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
+
+    private string GeneratePasswordResetToken(Usuario usuario)
+    {
+        // Aquí podrías implementar un token de un solo uso para restablecer la contraseña
+        // Por simplicidad, usaremos un JWT con una expiración corta
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, usuario.UsuarioId.ToString()),
+            new Claim(ClaimTypes.Email, usuario.Email),
+            new Claim("purpose", "password_reset")
+        };
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddHours(1), // Token válido por 1 hora
+            Issuer = _jwtSettings.Issuer,
+            Audience = _jwtSettings.Audience,
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+
+        public async Task ForgotPasswordAsync(ForgotPasswordDto dto, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                throw new InvalidOperationException("Email es requerido.");
+    
+            var usuario = await _usuarioRepo.FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
+            if (usuario is null)
+                throw new InvalidOperationException("No se encontró un usuario con ese email.");
+    
+            var resetToken = GeneratePasswordResetToken(usuario);
+    
+            // Aquí deberías enviar el resetToken por email al usuario
+            // Por simplicidad, solo lo retornaremos (en producción no harías esto)
+            Console.WriteLine($"Token de restablecimiento para {usuario.Email}: {resetToken}");
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordDto dto, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.NewPassword))
+                throw new InvalidOperationException("Token y nueva contraseña son requeridos.");
+    
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
+    
+            try
+            {
+                var principal = tokenHandler.ValidateToken(dto.Token, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = _jwtSettings.Issuer,
+                    ValidAudience = _jwtSettings.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                }, out SecurityToken validatedToken);
+    
+                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim is null)
+                    throw new InvalidOperationException("Token inválido.");
+    
+                int userId = int.Parse(userIdClaim.Value);
+                var usuario = await _usuarioRepo.FindAsync(new object[] { userId }, cancellationToken);
+                if (usuario is null)
+                    throw new InvalidOperationException("Usuario no encontrado.");
+    
+                usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+                await _usuarioRepo.UpdateAsync(usuario, cancellationToken);
+            }
+            catch (SecurityTokenException ex)
+            {
+                throw new InvalidOperationException("Token inválido o expirado.", ex);
+            }
+        }
 }
