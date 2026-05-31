@@ -16,6 +16,11 @@ var jwtSettings = new JwtSettings();
 builder.Configuration.GetSection("JwtSettings").Bind(jwtSettings);
 builder.Services.AddSingleton(jwtSettings);
 
+// Cargar configuración de email
+var emailSettings = new EmailSettings();
+builder.Configuration.GetSection("EmailSettings").Bind(emailSettings);
+builder.Services.AddSingleton(emailSettings);
+
 // Configurar autenticación JWT
 builder.Services
     .AddAuthentication(options =>
@@ -79,6 +84,9 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+
+
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
@@ -87,6 +95,8 @@ using (var scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
 }
+
+
 
 if (app.Environment.IsDevelopment())
 {
