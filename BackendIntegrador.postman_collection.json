@@ -53,6 +53,24 @@
           }
         },
         {
+          "name": "GET /api/usuarios/me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "me"
+              ]
+            }
+          }
+        },
+        {
           "name": "GET /api/usuarios/:id",
           "request": {
             "method": "GET",
@@ -82,7 +100,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Secret123!\",\n  \"estado\": \"activo\",\n  \"centroAcopioId\": 1,\n  \"fechaCreacion\": \"2026-04-29T00:00:00Z\"\n}"
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Secret123!\",\n  \"estado\": \"activo\",\n  \"centroAcopioId\": 1,\n  \"rolIds\": [1],\n  \"productor\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/usuarios",
@@ -108,7 +126,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"estado\": \"activo\",\n  \"centroAcopioId\": 1,\n  \"password\": \"NewSecret123!\"\n}"
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"estado\": \"activo\",\n  \"centroAcopioId\": 1,\n  \"password\": \"NewSecret123!\",\n  \"rolIds\": [1],\n  \"productor\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/usuarios/{{id}}",
@@ -137,6 +155,34 @@
                 "api",
                 "usuarios",
                 "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/usuarios/:id/reset-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"NuevaSecret123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{id}}/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{id}}",
+                "reset-password"
               ]
             }
           }
@@ -1805,92 +1851,6 @@
                 "resultados-parametro",
                 "{{analisisId}}",
                 "{{parametroId}}"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Usuario Roles",
-      "item": [
-        {
-          "name": "GET /api/usuario-roles",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/usuario-roles",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "usuario-roles"
-              ]
-            }
-          }
-        },
-        {
-          "name": "GET /api/usuario-roles/:usuarioId/:rolId",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/usuario-roles/{{usuarioId}}/{{rolId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "usuario-roles",
-                "{{usuarioId}}",
-                "{{rolId}}"
-              ]
-            }
-          }
-        },
-        {
-          "name": "POST /api/usuario-roles",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"usuarioId\": 1,\n  \"rolId\": 1\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/usuario-roles",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "usuario-roles"
-              ]
-            }
-          }
-        },
-        {
-          "name": "DELETE /api/usuario-roles/:usuarioId/:rolId",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/usuario-roles/{{usuarioId}}/{{rolId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "usuario-roles",
-                "{{usuarioId}}",
-                "{{rolId}}"
               ]
             }
           }

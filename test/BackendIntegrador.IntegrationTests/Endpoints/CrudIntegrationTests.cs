@@ -2,6 +2,7 @@ using BackendIntegrador.Application.Dtos;
 using BackendIntegrador.IntegrationTests.Common;
 using FluentAssertions;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -36,7 +37,7 @@ public class CrudIntegrationTests : IntegrationTestBase
     [InlineData("api/resultados-parametro")]
     [InlineData("api/productores")]
     [InlineData("api/fincas")]
-    [InlineData("api/usuario-roles")]
+    [InlineData("api/usuarios")]
     public async Task GetAllEndpoints_ReturnsOk(string route)
     {
         var response = await HttpClient.GetAsync(route);
@@ -245,13 +246,19 @@ public class CrudIntegrationTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task CreateUsuarioRol_ReturnsCreated()
+    public async Task ProvisionarUsuario_ReturnsCreated()
     {
-        var usuarioId = await SeedUsuarioAsync("roluser@example.com");
-        var roleId = await SeedRolAsync("Rol Test");
+        var roleId = await SeedRolAsync("Rol Provision Test");
 
-        var dto = new CreateUsuarioRolDto(usuarioId, roleId);
-        var response = await PostJsonAsync("api/usuario-roles", dto);
+        var dto = new ProvisionarUsuarioDto(
+            "roluser@example.com",
+            "SecurePassword123!",
+            "activo",
+            null,
+            new List<int> { roleId },
+            null);
+
+        var response = await PostJsonAsync("api/usuarios", dto);
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
@@ -260,19 +267,5 @@ public class CrudIntegrationTests : IntegrationTestBase
     {
         var content = new StringContent(JsonSerializer.Serialize(dto, JsonOptions), Encoding.UTF8, "application/json");
         return await HttpClient.PostAsync(url, content);
-    }
-
-    private async Task<int> SeedRolAsync(string nombre)
-    {
-        using var scope = Factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<BackendIntegrador.Infrastructure.Persistence.AppDbContext>();
-        var entity = new BackendIntegrador.Domain.Entities.Rol
-        {
-            Nombre = nombre,
-            Descripcion = "Rol semilla"
-        };
-        dbContext.Roles.Add(entity);
-        await dbContext.SaveChangesAsync();
-        return entity.RolId;
     }
 }

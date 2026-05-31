@@ -20,7 +20,7 @@ public static class DependencyInjection
 
         services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
 
-        services.AddScoped<ICrudService<UsuarioDto, CreateUsuarioDto, UpdateUsuarioDto>, UsuarioCrudService>();
+        services.AddScoped<IUsuarioFacadeService, UsuarioFacadeService>();
         services.AddScoped<ICrudService<RolDto, CreateRolDto, UpdateRolDto>, RolCrudService>();
         services.AddScoped<ICrudService<DepartamentoDto, CreateDepartamentoDto, UpdateDepartamentoDto>, DepartamentoCrudService>();
         services.AddScoped<ICrudService<MunicipioDto, CreateMunicipioDto, UpdateMunicipioDto>, MunicipioCrudService>();

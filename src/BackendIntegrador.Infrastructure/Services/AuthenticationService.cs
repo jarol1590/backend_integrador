@@ -4,21 +4,20 @@ using System.Text;
 using BackendIntegrador.Application.Abstractions;
 using BackendIntegrador.Application.Common;
 using BackendIntegrador.Application.Dtos;
-using BackendIntegrador.Domain.Entities;
+using BackendIntegrador.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BackendIntegrador.Infrastructure.Services;
 
 internal sealed class AuthenticationService : IAuthenticationService
 {
-    private readonly IRepository<Usuario> _usuarioRepo;
+    private readonly AppDbContext _db;
     private readonly JwtSettings _jwtSettings;
 
-    public AuthenticationService(
-        IRepository<Usuario> usuarioRepo,
-        JwtSettings jwtSettings)
+    public AuthenticationService(AppDbContext db, JwtSettings jwtSettings)
     {
-        _usuarioRepo = usuarioRepo;
+        _db = db;
         _jwtSettings = jwtSettings;
     }
 
@@ -27,25 +26,24 @@ internal sealed class AuthenticationService : IAuthenticationService
         if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
             throw new InvalidOperationException("Email y contraseña son requeridos.");
 
-        var usuarios = await _usuarioRepo.GetAllAsync(cancellationToken);
-        var usuario = usuarios.FirstOrDefault(u => u.Email == dto.Email);
+        var usuario = await _db.Usuarios
+            .Include(u => u.UsuarioRoles)
+                .ThenInclude(ur => ur.Rol)
+            .FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
 
         if (usuario is null)
             throw new InvalidOperationException("Credenciales inválidas.");
 
-        // Validar que el PasswordHash no esté vacío
         if (string.IsNullOrWhiteSpace(usuario.PasswordHash))
             throw new InvalidOperationException("El usuario no tiene una contraseña válida configurada.");
 
-        // Intentar verificar la contraseña de forma segura
-        bool passwordValid = false;
+        bool passwordValid;
         try
         {
             passwordValid = BCrypt.Net.BCrypt.Verify(dto.Password, usuario.PasswordHash);
         }
         catch (Exception ex)
         {
-            // Si hay error en BCrypt (ej: hash inválido), lanzar error
             throw new InvalidOperationException("Error al validar la contraseña. Por favor, intente de nuevo.", ex);
         }
 
@@ -55,24 +53,35 @@ internal sealed class AuthenticationService : IAuthenticationService
         if (usuario.Estado != "activo")
             throw new InvalidOperationException("El usuario no está activo.");
 
-        var token = GenerateJwtToken(usuario);
+        var roleNames = usuario.UsuarioRoles.Select(ur => ur.Rol.Nombre).ToList();
+        var token = GenerateJwtToken(usuario, roleNames);
+        var alcance = UsuarioAlcanceHelper.DerivarTipoUsuario(roleNames, usuario.CentroAcopioId);
 
         return new AuthResponseDto(
             token,
-            new UsuarioDto(usuario.UsuarioId, usuario.Email, usuario.Estado, usuario.FechaCreacion, usuario.CentroAcopioId)
-        );
+            new AuthUsuarioDto(
+                usuario.UsuarioId,
+                usuario.Email,
+                usuario.Estado,
+                usuario.FechaCreacion,
+                usuario.CentroAcopioId,
+                roleNames,
+                alcance));
     }
 
-    private string GenerateJwtToken(Usuario usuario)
+    private string GenerateJwtToken(Domain.Entities.Usuario usuario, IReadOnlyList<string> roleNames)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, usuario.UsuarioId.ToString()),
-            new Claim(ClaimTypes.Email, usuario.Email)
+            new(ClaimTypes.NameIdentifier, usuario.UsuarioId.ToString()),
+            new(ClaimTypes.Email, usuario.Email)
         };
+
+        foreach (var role in roleNames)
+            claims.Add(new Claim(ClaimTypes.Role, role));
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {

@@ -240,6 +240,16 @@ public class IntegrationTestBase : IAsyncLifetime
         return entity.AnalisisId;
     }
 
+    protected async Task<int> SeedRolAsync(string nombre = "Rol Test")
+    {
+        using var scope = Factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var entity = new Rol { Nombre = nombre, Descripcion = "Rol semilla" };
+        dbContext.Roles.Add(entity);
+        await dbContext.SaveChangesAsync();
+        return entity.RolId;
+    }
+
     protected async Task<int> SeedParametroAsync(string nombre = "Parametro Test")
     {
         using var scope = Factory.Services.CreateScope();

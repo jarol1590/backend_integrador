@@ -1,221 +1,160 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using BackendIntegrador.Api.Controllers;
 using BackendIntegrador.Application.Abstractions;
 using BackendIntegrador.Application.Dtos;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
 
-namespace BackendIntegrador.Tests
+namespace BackendIntegrador.Tests;
+
+public class UsuariosControllerUnitTests
 {
-    public class UsuariosControllerUnitTests
+    private readonly Mock<IUsuarioFacadeService> _mockFacade;
+    private readonly Mock<IUserManagementService> _mockUserManagement;
+    private readonly UsuariosController _controller;
+
+    public UsuariosControllerUnitTests()
     {
-        private readonly Mock<ICrudService<UsuarioDto, CreateUsuarioDto, UpdateUsuarioDto>> _mockSvc;
-        private readonly UsuariosController _controller;
-
-        public UsuariosControllerUnitTests()
-        {
-            _mockSvc = new Mock<ICrudService<UsuarioDto, CreateUsuarioDto, UpdateUsuarioDto>>();
-            _controller = new UsuariosController(_mockSvc.Object);
-        }
-        /*
-        Prueba de creación de usuario con datos válidos, 
-        verificando que se devuelve un CreatedAtActionResult 
-        con el ID del nuevo usuario.
-        */
-        [Fact]
-        public async Task Create_ValidUsuario_ReturnsCreatedAndContainsId()
-        {
-            var dto = new CreateUsuarioDto(
-                "user@example.com",
-                "Secret123!",
-                "activo",
-                1);
-
-            var createdUser = new UsuarioDto(
-                1,
-                "user@example.com",
-                "activo",
-                DateTime.Parse("2026-04-29T00:00:00Z"),
-                1);
-
-            _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateUsuarioDto>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(createdUser);
-
-            var result = await _controller.Create(dto, CancellationToken.None);
-
-            var createdResult = result.Result as CreatedAtActionResult;
-            createdResult.Should().NotBeNull();
-            createdResult!.StatusCode.Should().Be(201);
-
-            createdResult.RouteValues.Should().ContainKey("id");
-            createdResult.RouteValues["id"].Should().Be(1);
-        }
-
-        [Fact]
-        public async Task Create_InvalidEmail_ReturnsBadRequest()
-        {
-            var dto = new CreateUsuarioDto(
-                "usuario@mal",
-                "12345",
-                "Activo",
-                1);
-
-            _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateUsuarioDto>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new InvalidOperationException("El email tiene un formato inválido"));
-
-            var result = await _controller.Create(dto, CancellationToken.None);
-
-            var badRequest = result.Result as BadRequestObjectResult;
-            badRequest.Should().NotBeNull();
-            badRequest!.Value.Should().BeEquivalentTo(new { message = "El email tiene un formato inválido" });
-        }
-
-        [Fact]
-        public async Task Create_EmailExists_AcceptsConflictOrBadRequest()
-        {
-            var dto = new CreateUsuarioDto("user@example.com","Secret123!","activo",1);
-            _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateUsuarioDto>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new InvalidOperationException("Email ya existe"));
-
-            var result = await _controller.Create(dto, CancellationToken.None);
-
-            // Aceptar comportamiento actual (BadRequestObjectResult) o esperado (ObjectResult con StatusCode 409)
-            if (result.Result is BadRequestObjectResult)
-            {
-                (result.Result as BadRequestObjectResult)!.Should().NotBeNull();
-            }
-            else
-            {
-                var obj = result.Result as ObjectResult;
-                obj.Should().NotBeNull();
-                obj!.StatusCode.Should().Be(409);
-            }
-        }
-
-        [Fact]
-        public async Task Create_InvalidData_ReturnsBadRequest()
-        {
-            var dto = new CreateUsuarioDto("", "", "Activo", 0);
-            _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateUsuarioDto>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new InvalidOperationException("Datos inválidos"));
-
-            try
-            {
-                var result = await _controller.Create(dto, CancellationToken.None);
-                if (result.Result is BadRequestObjectResult)
-                {
-                    (result.Result as BadRequestObjectResult)!.Should().NotBeNull();
-                }
-                else
-                {
-                    var obj = result.Result as ObjectResult;
-                    obj.Should().NotBeNull();
-                    obj!.StatusCode.Should().Be(400);
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                // aceptable cuando el controlador propaga la excepción
-            }
-        }
-
-        [Fact]
-        public async Task GetAll_ReturnsOkWithList()
-        {
-            var list = new List<UsuarioDto>
-            {
-                new UsuarioDto(1, "user@example.com", "activo", DateTime.Parse("2026-04-29T00:00:00Z"), 1)
-            };
-            _mockSvc.Setup(s => s.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
-
-            var action = await _controller.GetAll(CancellationToken.None);
-
-            var ok = action.Result as OkObjectResult;
-            ok.Should().NotBeNull();
-            ok!.Value.Should().BeEquivalentTo(list);
-        }
-
-        [Fact]
-        public async Task GetById_ExistingId_ReturnsOkWithItem()
-        {
-            var user = new UsuarioDto(1, "user@example.com", "activo", DateTime.Parse("2026-04-29T00:00:00Z"), 1);
-            _mockSvc.Setup(s => s.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(user);
-
-            var action = await _controller.GetById(1, CancellationToken.None);
-
-            var ok = action.Result as OkObjectResult;
-            ok.Should().NotBeNull();
-            ok!.Value.Should().BeEquivalentTo(user);
-        }
-
-        [Fact]
-        public async Task Update_Valid_ReturnsOk()
-        {
-            var updateDto = new UpdateUsuarioDto("user@example.com","activo",1, "NewSecret123!");
-            _mockSvc.Setup(s => s.UpdateAsync(1, It.IsAny<UpdateUsuarioDto>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
-            var action = await _controller.Update(1, updateDto, CancellationToken.None);
-
-            var ok = action as OkObjectResult;
-            ok.Should().NotBeNull();
-            var statusProp = ok!.Value.GetType().GetProperty("status");
-            statusProp.Should().NotBeNull();
-            var statusValue = statusProp!.GetValue(ok.Value);
-            statusValue.Should().Be(200);
-        }
-
-        [Fact]
-        public async Task Delete_ExistingId_AcceptsNoContentOrOkWithStatus204()
-        {
-            _mockSvc.Setup(s => s.DeleteAsync(2, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-
-            var action = await _controller.Delete(2, CancellationToken.None);
-
-            if (action is NoContentResult)
-            {
-                (action as NoContentResult)!.Should().NotBeNull();
-            }
-            else if (action is OkObjectResult ok)
-            {
-                var statusProp = ok.Value.GetType().GetProperty("status");
-                statusProp.Should().NotBeNull();
-                var statusValue = statusProp!.GetValue(ok.Value);
-                statusValue.Should().Be(204);
-            }
-            else
-            {
-                action.Should().NotBeNull();
-                throw new Xunit.Sdk.XunitException("Respuesta inesperada al eliminar: ni NoContent ni Ok(status:204)");
-            }
-        }
-
-        [Fact]
-        public async Task Delete_NotFoundId_AcceptsBadRequestOrNotFound()
-        {
-            _mockSvc.Setup(s => s.DeleteAsync(50, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
-
-            var action = await _controller.Delete(50, CancellationToken.None);
-
-            // Aceptar BadRequestObjectResult o NotFoundObjectResult
-            if (action is BadRequestObjectResult)
-            {
-                (action as BadRequestObjectResult)!.Should().NotBeNull();
-            }
-            else if (action is NotFoundObjectResult)
-            {
-                (action as NotFoundObjectResult)!.Should().NotBeNull();
-            }
-            else
-            {
-                action.Should().NotBeNull();
-                throw new Xunit.Sdk.XunitException("Respuesta inesperada al eliminar id no existente: ni BadRequest ni NotFound");
-            }
-        }
+        _mockFacade = new Mock<IUsuarioFacadeService>();
+        _mockUserManagement = new Mock<IUserManagementService>();
+        _controller = new UsuariosController(_mockFacade.Object, _mockUserManagement.Object);
     }
+
+    [Fact]
+    public async Task Create_ValidUsuario_ReturnsCreatedAndContainsId()
+    {
+        var dto = new ProvisionarUsuarioDto(
+            "user@example.com",
+            "Secret123!",
+            "activo",
+            1,
+            new List<int> { 1 },
+            null);
+
+        var createdUser = BuildPerfil(1, "user@example.com");
+
+        _mockFacade.Setup(s => s.ProvisionarAsync(It.IsAny<ProvisionarUsuarioDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(createdUser);
+
+        var result = await _controller.Create(dto, CancellationToken.None);
+
+        var createdResult = result.Result as CreatedAtActionResult;
+        createdResult.Should().NotBeNull();
+        createdResult!.StatusCode.Should().Be(201);
+        createdResult.RouteValues.Should().ContainKey("id");
+        createdResult.RouteValues["id"].Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Create_InvalidEmail_ReturnsBadRequest()
+    {
+        var dto = new ProvisionarUsuarioDto("usuario@mal", "12345", "activo", 1, new List<int> { 1 }, null);
+
+        _mockFacade.Setup(s => s.ProvisionarAsync(It.IsAny<ProvisionarUsuarioDto>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("El email tiene un formato inválido"));
+
+        var result = await _controller.Create(dto, CancellationToken.None);
+
+        var badRequest = result.Result as BadRequestObjectResult;
+        badRequest.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetAll_ReturnsOkWithList()
+    {
+        var list = new List<UsuarioListadoDto>
+        {
+            new(1, "user@example.com", "activo", DateTime.Parse("2026-04-29T00:00:00Z"), "Centro", new[] { "Admin" }, "admin")
+        };
+        _mockFacade.Setup(s => s.GetListadoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+
+        var action = await _controller.GetAll(CancellationToken.None);
+
+        var ok = action.Result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(list);
+    }
+
+    [Fact]
+    public async Task GetById_ExistingId_ReturnsOkWithItem()
+    {
+        var user = BuildPerfil(1, "user@example.com");
+        _mockFacade.Setup(s => s.GetPerfilAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(user);
+
+        var action = await _controller.GetById(1, CancellationToken.None);
+
+        var ok = action.Result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(user);
+    }
+
+    [Fact]
+    public async Task GetMe_ReturnsOkWithCurrentUser()
+    {
+        var user = BuildPerfil(5, "me@example.com");
+        _mockFacade.Setup(s => s.GetPerfilAsync(5, It.IsAny<CancellationToken>())).ReturnsAsync(user);
+
+        var identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, "5") }, "TestAuth");
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) }
+        };
+
+        var action = await _controller.GetMe(CancellationToken.None);
+
+        var ok = action.Result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(user);
+    }
+
+    [Fact]
+    public async Task Update_Valid_ReturnsOk()
+    {
+        var updateDto = new ActualizarUsuarioDto("user@example.com", "activo", 1, "NewSecret123!", new List<int> { 1 }, null);
+        _mockFacade.Setup(s => s.ActualizarAsync(1, It.IsAny<ActualizarUsuarioDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(BuildPerfil(1, "user@example.com"));
+
+        var action = await _controller.Update(1, updateDto, CancellationToken.None);
+
+        var ok = action as OkObjectResult;
+        ok.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Delete_ExistingId_ReturnsOk()
+    {
+        _mockFacade.Setup(s => s.DesactivarAsync(2, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+        var action = await _controller.Delete(2, CancellationToken.None);
+
+        action.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task Delete_NotFoundId_ReturnsNotFound()
+    {
+        _mockFacade.Setup(s => s.DesactivarAsync(50, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new KeyNotFoundException());
+
+        var action = await _controller.Delete(50, CancellationToken.None);
+
+        action.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    private static UsuarioPerfilDto BuildPerfil(int id, string email) =>
+        new(
+            id,
+            email,
+            "activo",
+            DateTime.Parse("2026-04-29T00:00:00Z"),
+            null,
+            new List<RolResumenDto>(),
+            new UsuarioAlcanceDto("sin_asignar", null, Array.Empty<FincaAlcanceDto>()));
 }
