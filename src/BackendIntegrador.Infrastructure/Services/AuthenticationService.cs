@@ -53,9 +53,11 @@ internal sealed class AuthenticationService : IAuthenticationService
         if (usuario.Estado != "activo")
             throw new InvalidOperationException("El usuario no está activo.");
 
-        var roleNames = usuario.UsuarioRoles.Select(ur => ur.Rol.Nombre).ToList();
-        var token = GenerateJwtToken(usuario, roleNames);
-        var alcance = UsuarioAlcanceHelper.DerivarTipoUsuario(roleNames, usuario.CentroAcopioId);
+        var rol = usuario.UsuarioRoles.Select(ur => ur.Rol).FirstOrDefault();
+        var rolNombre = rol?.Nombre ?? "Sin rol";
+        var tipoUsuario = UsuarioRoleTypes.ResolveTipoFromRolNombre(rolNombre) ?? "sin_asignar";
+
+        var token = GenerateJwtToken(usuario, rolNombre);
 
         return new AuthResponseDto(
             token,
@@ -64,12 +66,11 @@ internal sealed class AuthenticationService : IAuthenticationService
                 usuario.Email,
                 usuario.Estado,
                 usuario.FechaCreacion,
-                usuario.CentroAcopioId,
-                roleNames,
-                alcance));
+                tipoUsuario,
+                rolNombre));
     }
 
-    private string GenerateJwtToken(Domain.Entities.Usuario usuario, IReadOnlyList<string> roleNames)
+    private string GenerateJwtToken(Domain.Entities.Usuario usuario, string rolNombre)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
@@ -77,11 +78,9 @@ internal sealed class AuthenticationService : IAuthenticationService
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, usuario.UsuarioId.ToString()),
-            new(ClaimTypes.Email, usuario.Email)
+            new(ClaimTypes.Email, usuario.Email),
+            new(ClaimTypes.Role, rolNombre)
         };
-
-        foreach (var role in roleNames)
-            claims.Add(new Claim(ClaimTypes.Role, role));
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {

@@ -1,7 +1,7 @@
+using BackendIntegrador.Application.Common;
 using BackendIntegrador.Application.Dtos;
 using BackendIntegrador.IntegrationTests.Common;
 using FluentAssertions;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -20,14 +20,14 @@ public class UsuariosIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task CreateUsuario_WithValidData_ReturnsCreatedStatusAndUser()
     {
-        var roleId = await SeedRolAsync("Usuario Integration Rol");
+        var roleId = await SeedRolAsync(UsuarioRoleTypes.RolNombreAdministrador);
 
         var createDto = new ProvisionarUsuarioDto(
             Email: "newuser@example.com",
             Password: "SecurePassword123!",
             Estado: "activo",
+            RolId: roleId,
             CentroAcopioId: null,
-            RolIds: new List<int> { roleId },
             Productor: null);
 
         var content = new StringContent(

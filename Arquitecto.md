@@ -1,18 +1,32 @@
-Actúa como un Arquitecto de Software y Desarrollador Senior en .NET (C#), experto en diseño de APIs RESTful y patrones de integración.
+Actúa como un Arquitecto de Bases de Datos y Desarrollador Senior en .NET (C#) experto en Entity Framework Core y diseño de APIs RESTful.
 
-Actualmente tengo una API en .NET para un portal de "Control Lácteo". El problema principal es que los endpoints están demasiado segregados (antipatrón "Chatty API"). El frontend se ve obligado a consumir múltiples endpoints para realizar acciones básicas, lo que genera problemas de latencia y complejidad en el cliente. 
+Estamos refactorizando el módulo de usuarios para un portal de "Control Lácteo". Actualmente tenemos una única tabla de base de datos para los Usuarios, pero el sistema maneja 4 roles distintos con reglas de negocio y relaciones estrictamente excluyentes:
+1. Administrador global
+2. Centro de Acopio
+3. Productor
+4. Trabajador Centro de acopio
 
-Necesito rediseñar y consolidar la API para que sea más orientada a casos de uso o pantallas del frontend (patrón BFF / Facade), y quiero empezar exclusivamente por el módulo de MANEJO DE USUARIOS.
+Existen las siguientes restricciones relacionales críticas que deben ser evaluadas:
+- Un "Centro de Acopio" o un "Trabajador Centro de acopio" NO pueden tener fincas asociadas bajo ninguna circunstancia.
+- Un "Productor" (Productor lácteo) NO puede estar asociado a un Centro de Acopio como lugar de trabajo.
 
-Por favor, genera un PROMPT DETALLADO Y EXTENSO que yo pueda utilizar para que me guíes en este desarrollo. El prompt que vas a construir debe exigir el cumplimiento estricto de los siguientes requerimientos técnicos:
+Necesito rediseñar la forma en que se extrae y retorna la información en los endpoints de usuario para que el frontend reciba respuestas limpias y específicas según el rol, evitando enviar propiedades innecesarias o nulas (evitar devolver un array de "fincas" a un trabajador, por ejemplo). Además, se deben actualizar las pruebas y la colección de Postman.
+
+Por favor, genera un PROMPT DETALLADO Y EXTENSO que yo pueda utilizar para guiar este desarrollo paso a paso. El prompt debe exigir el cumplimiento estricto de los siguientes requerimientos técnicos:
 
 ### REQUERIMIENTOS TÉCNICOS A INTEGRAR EN EL PROMPT:
-1. **Consolidación de Endpoints (Facade/BFF):** Diseñar nuevos endpoints agregados para la gestión de usuarios (ej. un solo endpoint que devuelva el perfil del usuario, sus roles, y los permisos asociados a las fincas/producción láctea).
-2. **Uso de DTOs Enriquecidos:** Implementación de Data Transfer Objects (DTOs) diseñados específicamente para las necesidades de las vistas del frontend, evitando el over-fetching o under-fetching de datos.
-3. **Optimización en el Acceso a Datos:** Si se usa Entity Framework Core, asegurar que las consultas agrupen la data necesaria de manera eficiente (usando `.Include()` o proyecciones con `.Select()`) para evitar el problema de consultas N+1 al traer datos relacionados del usuario.
-4. **Manejo de Transacciones:** Agrupar operaciones de escritura complejas (ej. crear usuario + asignar rol + crear registro inicial en el sistema lácteo) en una sola petición transaccional desde el controlador hasta el servicio.
+1. **Análisis de Base de Datos y Consultas Condicionales:** Diseñar la estrategia de acceso a datos en Entity Framework Core. Se debe utilizar carga condicional (Conditional Includes) o proyecciones (`.Select()`) que evalúen el rol del usuario antes de intentar hacer `JOIN` con tablas que no le corresponden.
+2. **DTOs Dinámicos/Polimórficos:** Creación de Response DTOs que se adapten al rol del usuario. El contrato de la API debe mutar inteligentemente (ej. `ProductorResponseDto` vs `TrabajadorResponseDto`) u omitir propiedades irrelevantes para no contaminar el cliente.
+3. **Validación de Reglas de Negocio:** Implementación de validaciones a nivel de servicio para asegurar la integridad estructural (lanzar excepciones si se intenta asignar una finca a un Centro de Acopio).
+4. **Actualización de Artefactos de Pruebas:** Modificación o creación de Pruebas Unitarias/Integración (xUnit/NUnit) que cubran las restricciones de los roles.
+5. **Postman Collection:** Generación del JSON de la colección de Postman actualizada con ejemplos de respuesta esperados para cada uno de los 4 roles.
 
 ### RESTRICCIÓN DE EJECUCIÓN (CRÍTICO):
-El prompt debe obligar al modelo a trabajar en dos fases estrictas:
-- **Fase 1: Planificación y Análisis de Endpoints de Usuario:** Antes de escribir código, el modelo debe analizar el problema y proponer un "contrato" de la nueva API para usuarios. Debe listar qué endpoints actuales asume que existen, y mostrar la estructura exacta en formato JSON de los nuevos Request DTOs y Response DTOs consolidados. No mostrará código en C# hasta que el usuario valide este plan de reestructuración.
-- **Fase 2: Implementación en .NET:** Una vez aprobado el plan, procederá a generar el código C# limpio, incluyendo Controladores, Servicios, DTOs y la lógica de mapeo.
+El prompt debe obligar al modelo a trabajar en fases estrictas y detenerse en la Fase 1 hasta recibir aprobación:
+- **Fase 1: Análisis de Arquitectura y Planificación (ESPERAR APROBACIÓN):** Antes de escribir código .NET, el modelo debe presentar un esquema del diseño propuesto. Debe incluir:
+  - Cómo estructurará las consultas en EF Core dadas las reglas exclusivas.
+  - El diseño JSON de las respuestas de la API para cada uno de los 4 roles (Response DTOs).
+  - Qué lógica de validación se implementará para proteger la base de datos de inconsistencias.
+  *El modelo debe detenerse aquí y preguntar si el plan es correcto.*
+- **Fase 2: Implementación Backend:** Una vez aprobado, generar los DTOs, Controladores, Servicios y las consultas en EF Core.
+- **Fase 3: Pruebas y Postman:** Finalmente, proporcionar el código de los tests y el JSON de la colección de Postman.

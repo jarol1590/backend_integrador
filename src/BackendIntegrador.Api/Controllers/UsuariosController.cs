@@ -25,7 +25,7 @@ public sealed class UsuariosController : ControllerBase
         => Ok(await _facade.GetListadoAsync(cancellationToken));
 
     [HttpGet("me")]
-    public async Task<ActionResult<UsuarioPerfilDto>> GetMe(CancellationToken cancellationToken)
+    public async Task<ActionResult<UsuarioPerfilBaseDto>> GetMe(CancellationToken cancellationToken)
     {
         var usuarioId = GetCurrentUsuarioId();
         var perfil = await _facade.GetPerfilAsync(usuarioId, cancellationToken);
@@ -33,7 +33,7 @@ public sealed class UsuariosController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<UsuarioPerfilDto>> GetById(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<UsuarioPerfilBaseDto>> GetById(int id, CancellationToken cancellationToken)
     {
         var perfil = await _facade.GetPerfilAsync(id, cancellationToken);
         return perfil is null ? NotFound() : Ok(perfil);
@@ -41,7 +41,7 @@ public sealed class UsuariosController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost]
-    public async Task<ActionResult<UsuarioPerfilDto>> Create(
+    public async Task<ActionResult<UsuarioPerfilBaseDto>> Create(
         [FromBody] ProvisionarUsuarioDto dto,
         CancellationToken cancellationToken)
     {

@@ -1,14 +1,28 @@
 {
   "info": {
     "name": "BackendIntegrador API",
-    "description": "Colección Postman para consumir todos los endpoints de la API BackendIntegrador.",
+    "description": "Coleccion Postman para BackendIntegrador - Control Lacteo (.NET 8).\n\nFlujo recomendado:\n1. POST /api/auth/login (guarda accessToken automaticamente).\n2. Crear roles canonicos (carpeta Roles - Seed).\n3. Provisionar usuarios por rol (carpeta Usuarios - POST por rol).\n4. Consumir catalogos y trazabilidad lactea.\n\nModulo usuarios: respuestas polimorficas con tipoUsuario (administrador | centro_acopio | productor | trabajador_centro_acopio).\nUn usuario = un rol. Reset de contrasena en POST /api/usuarios/{id}/reset-password.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "1.0.0"
+    "version": "2.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
   },
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://localhost:5111"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
     },
     {
       "key": "id",
@@ -23,6 +37,42 @@
       "value": "1"
     },
     {
+      "key": "centroAcopioId",
+      "value": "1"
+    },
+    {
+      "key": "departamentoId",
+      "value": "1"
+    },
+    {
+      "key": "municipioId",
+      "value": "1"
+    },
+    {
+      "key": "productorId",
+      "value": "1"
+    },
+    {
+      "key": "fincaId",
+      "value": "1"
+    },
+    {
+      "key": "ordenoId",
+      "value": "1"
+    },
+    {
+      "key": "transporteId",
+      "value": "1"
+    },
+    {
+      "key": "loteId",
+      "value": "1"
+    },
+    {
+      "key": "muestraId",
+      "value": "1"
+    },
+    {
       "key": "analisisId",
       "value": "1"
     },
@@ -33,7 +83,88 @@
   ],
   "item": [
     {
+      "name": "Auth",
+      "description": "Autenticacion JWT. Login sin token; change-password requiere Bearer.",
+      "item": [
+        {
+          "name": "POST /api/auth/login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Secret123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Retorna accessToken y AuthUsuarioDto (tipoUsuario, rolNombre).",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.accessToken) {",
+                  "        pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/change-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Secret123!\",\n  \"newPassword\": \"NuevaSecret123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "change-password"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Usuarios",
+      "description": "API consolidada /api/usuarios - Facade con DTOs polimorficos por rol. POST registro es anonimo.",
       "item": [
         {
           "name": "GET /api/usuarios",
@@ -89,7 +220,7 @@
           }
         },
         {
-          "name": "POST /api/usuarios",
+          "name": "POST /api/usuarios - Administrador",
           "request": {
             "method": "POST",
             "header": [
@@ -100,7 +231,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Secret123!\",\n  \"estado\": \"activo\",\n  \"centroAcopioId\": 1,\n  \"rolIds\": [1],\n  \"productor\": null\n}"
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Secret123!\",\n  \"estado\": \"activo\",\n  \"rolId\": {{rolId}},\n  \"centroAcopioId\": null,\n  \"productor\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/usuarios",
@@ -111,11 +242,105 @@
                 "api",
                 "usuarios"
               ]
+            },
+            "description": "tipoUsuario: administrador",
+            "auth": {
+              "type": "noauth"
             }
           }
         },
         {
-          "name": "PUT /api/usuarios/:id",
+          "name": "POST /api/usuarios - Centro de Acopio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"centro@example.com\",\n  \"password\": \"Secret123!\",\n  \"estado\": \"activo\",\n  \"rolId\": {{rolId}},\n  \"centroAcopioId\": {{centroAcopioId}},\n  \"productor\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "tipoUsuario: centro_acopio",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "POST /api/usuarios - Productor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"productor@example.com\",\n  \"password\": \"Secret123!\",\n  \"estado\": \"activo\",\n  \"rolId\": {{rolId}},\n  \"centroAcopioId\": null,\n  \"productor\": {\n    \"nombre\": \"Maria Lopez\",\n    \"documento\": \"98765432\",\n    \"telefono\": \"3109876543\",\n    \"tipoDocumentoId\": 1,\n    \"fincaInicial\": {\n      \"nombre\": \"El Roble\",\n      \"direccion\": \"Vereda La Palma\",\n      \"latitud\": 4.6097,\n      \"longitud\": -74.0817,\n      \"municipioId\": {{municipioId}}\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "tipoUsuario: productor - unico con fincas",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "POST /api/usuarios - Trabajador Centro de acopio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"trabajador@example.com\",\n  \"password\": \"Secret123!\",\n  \"estado\": \"activo\",\n  \"rolId\": {{rolId}},\n  \"centroAcopioId\": {{centroAcopioId}},\n  \"productor\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "tipoUsuario: trabajador_centro_acopio",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "PUT /api/usuarios/:id - Administrador",
           "request": {
             "method": "PUT",
             "header": [
@@ -126,7 +351,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"estado\": \"activo\",\n  \"centroAcopioId\": 1,\n  \"password\": \"NewSecret123!\",\n  \"rolIds\": [1],\n  \"productor\": null\n}"
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"estado\": \"activo\",\n  \"rolId\": {{rolId}},\n  \"centroAcopioId\": null,\n  \"password\": null,\n  \"productor\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/usuarios/{{id}}",
@@ -142,7 +367,61 @@
           }
         },
         {
-          "name": "DELETE /api/usuarios/:id",
+          "name": "PUT /api/usuarios/:id - Productor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"productor@example.com\",\n  \"estado\": \"activo\",\n  \"rolId\": {{rolId}},\n  \"centroAcopioId\": null,\n  \"password\": null,\n  \"productor\": {\n    \"nombre\": \"Maria Lopez\",\n    \"documento\": \"98765432\",\n    \"telefono\": \"3109876543\",\n    \"tipoDocumentoId\": 1,\n    \"fincaInicial\": null\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/usuarios/:id - Trabajador",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"trabajador@example.com\",\n  \"estado\": \"activo\",\n  \"rolId\": {{rolId}},\n  \"centroAcopioId\": {{centroAcopioId}},\n  \"password\": null,\n  \"productor\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/usuarios/:id (desactivar)",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -184,13 +463,15 @@
                 "{{id}}",
                 "reset-password"
               ]
-            }
+            },
+            "description": "Reset admin - requiere JWT"
           }
         }
       ]
     },
     {
       "name": "Roles",
+      "description": "Catalogo de roles. Nombres canonicos requeridos por el modulo de usuarios.",
       "item": [
         {
           "name": "GET /api/roles",
@@ -228,7 +509,7 @@
           }
         },
         {
-          "name": "POST /api/roles",
+          "name": "POST /api/roles - Seed Administrador",
           "request": {
             "method": "POST",
             "header": [
@@ -239,7 +520,85 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Admin\",\n  \"descripcion\": \"Administrador del sistema\"\n}"
+              "raw": "{\n  \"nombre\": \"Administrador\",\n  \"descripcion\": \"Administrador global del sistema\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/roles - Seed Centro de Acopio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Centro de Acopio\",\n  \"descripcion\": \"Responsable de centro de acopio\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/roles - Seed Productor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Productor\",\n  \"descripcion\": \"Productor lacteo\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/roles - Seed Trabajador Centro de acopio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Trabajador Centro de acopio\",\n  \"descripcion\": \"Trabajador operativo del centro\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/roles",
@@ -265,7 +624,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Admin\",\n  \"descripcion\": \"Administrador actualizado\"\n}"
+              "raw": "{\n  \"nombre\": \"Administrador\",\n  \"descripcion\": \"Descripcion actualizada\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/roles/{{id}}",
@@ -376,7 +735,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Caldas Actualizado\"\n}"
+              "raw": "{\n  \"nombre\": \"Caldas\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/departamentos/{{id}}",
@@ -461,7 +820,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Manizales\",\n  \"departamentoId\": 1\n}"
+              "raw": "{\n  \"nombre\": \"Manizales\",\n  \"departamentoId\": {{departamentoId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/municipios",
@@ -487,7 +846,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Manizales Centro\",\n  \"departamentoId\": 1\n}"
+              "raw": "{\n  \"nombre\": \"Manizales\",\n  \"departamentoId\": {{departamentoId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/municipios/{{id}}",
@@ -572,7 +931,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Centro 1\",\n  \"direccion\": \"Calle 123\",\n  \"latitud\": 4.9,\n  \"longitud\": -75.7,\n  \"municipioId\": 1\n}"
+              "raw": "{\n  \"nombre\": \"Acopio Norte\",\n  \"direccion\": \"Calle 10 #20-30\",\n  \"latitud\": 5.0689,\n  \"longitud\": -75.5174,\n  \"municipioId\": {{municipioId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/centros-acopio",
@@ -598,7 +957,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Centro A\",\n  \"direccion\": \"Avenida 123\",\n  \"latitud\": 4.9,\n  \"longitud\": -75.7,\n  \"municipioId\": 1\n}"
+              "raw": "{\n  \"nombre\": \"Acopio Norte\",\n  \"direccion\": \"Calle 10 #20-30\",\n  \"latitud\": 5.0689,\n  \"longitud\": -75.5174,\n  \"municipioId\": {{municipioId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/centros-acopio/{{id}}",
@@ -683,7 +1042,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Cédula\",\n  \"descripcion\": \"Documento de identidad\"\n}"
+              "raw": "{\n  \"nombre\": \"Cedula de ciudadania\",\n  \"descripcion\": \"Documento de identidad\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/tipos-documento",
@@ -709,7 +1068,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Cédula de ciudadanía\",\n  \"descripcion\": \"Documento actualizado\"\n}"
+              "raw": "{\n  \"nombre\": \"Cedula de ciudadania\",\n  \"descripcion\": \"Documento de identidad\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/tipos-documento/{{id}}",
@@ -794,7 +1153,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Juan Pérez\",\n  \"documento\": \"123456789\",\n  \"telefono\": \"3001234567\",\n  \"usuarioId\": 1,\n  \"tipoDocumentoId\": 1\n}"
+              "raw": "{\n  \"nombre\": \"Juan Perez\",\n  \"documento\": \"1234567890\",\n  \"telefono\": \"3001234567\",\n  \"usuarioId\": {{usuarioId}},\n  \"tipoDocumentoId\": 1\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/productores",
@@ -820,7 +1179,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Juan Pérez\",\n  \"documento\": \"123456789\",\n  \"telefono\": \"3007654321\",\n  \"usuarioId\": 1,\n  \"tipoDocumentoId\": 1\n}"
+              "raw": "{\n  \"nombre\": \"Juan Perez\",\n  \"documento\": \"1234567890\",\n  \"telefono\": \"3001234567\",\n  \"usuarioId\": {{usuarioId}},\n  \"tipoDocumentoId\": 1\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/productores/{{id}}",
@@ -853,7 +1212,8 @@
             }
           }
         }
-      ]
+      ],
+      "description": "CRUD independiente. Alta de productor+lacteo preferible via POST /api/usuarios."
     },
     {
       "name": "Fincas",
@@ -905,7 +1265,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Finca 1\",\n  \"direccion\": \"Vereda La Esperanza\",\n  \"latitud\": 4.9,\n  \"longitud\": -75.7,\n  \"productorId\": 1,\n  \"municipioId\": 1\n}"
+              "raw": "{\n  \"nombre\": \"La Esperanza\",\n  \"direccion\": \"Vereda El Bosque\",\n  \"latitud\": 5.07,\n  \"longitud\": -75.52,\n  \"productorId\": {{productorId}},\n  \"municipioId\": {{municipioId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/fincas",
@@ -931,7 +1291,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Finca 1\",\n  \"direccion\": \"Vereda La Esperanza 2\",\n  \"latitud\": 4.9,\n  \"longitud\": -75.7,\n  \"productorId\": 1,\n  \"municipioId\": 1\n}"
+              "raw": "{\n  \"nombre\": \"La Esperanza\",\n  \"direccion\": \"Vereda El Bosque\",\n  \"latitud\": 5.07,\n  \"longitud\": -75.52,\n  \"productorId\": {{productorId}},\n  \"municipioId\": {{municipioId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/fincas/{{id}}",
@@ -1016,7 +1376,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fechaHoraInicio\": \"2026-04-29T08:00:00Z\",\n  \"fechaHoraFin\": null,\n  \"volumenLitros\": 125.5,\n  \"fincaId\": 1\n}"
+              "raw": "{\n  \"fechaHoraInicio\": \"2026-04-29T06:00:00Z\",\n  \"fechaHoraFin\": \"2026-04-29T08:00:00Z\",\n  \"volumenLitros\": 120.5,\n  \"fincaId\": {{fincaId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/ordenos",
@@ -1042,7 +1402,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fechaHoraInicio\": \"2026-04-29T08:00:00Z\",\n  \"fechaHoraFin\": \"2026-04-29T10:00:00Z\",\n  \"volumenLitros\": 130.0,\n  \"fincaId\": 1\n}"
+              "raw": "{\n  \"fechaHoraInicio\": \"2026-04-29T06:00:00Z\",\n  \"fechaHoraFin\": \"2026-04-29T08:00:00Z\",\n  \"volumenLitros\": 125.0,\n  \"fincaId\": {{fincaId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/ordenos/{{id}}",
@@ -1127,7 +1487,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"placaVehiculo\": \"ABC123\",\n  \"fechaHoraSalida\": \"2026-04-29T09:00:00Z\",\n  \"fechaHoraEntrada\": null,\n  \"temperaturaInicio\": 12\n}"
+              "raw": "{\n  \"placaVehiculo\": \"ABC123\",\n  \"fechaHoraSalida\": \"2026-04-29T09:00:00Z\",\n  \"fechaHoraEntrada\": null,\n  \"temperaturaInicio\": 4\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/transportes",
@@ -1153,7 +1513,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"placaVehiculo\": \"ABC123\",\n  \"fechaHoraSalida\": \"2026-04-29T09:00:00Z\",\n  \"fechaHoraEntrada\": \"2026-04-29T12:00:00Z\",\n  \"temperaturaInicio\": 14\n}"
+              "raw": "{\n  \"placaVehiculo\": \"ABC123\",\n  \"fechaHoraSalida\": \"2026-04-29T09:00:00Z\",\n  \"fechaHoraEntrada\": \"2026-04-29T11:00:00Z\",\n  \"temperaturaInicio\": 4\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/transportes/{{id}}",
@@ -1238,7 +1598,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ordenoId\": 1,\n  \"centroAcopioId\": 1,\n  \"volumenCapturadoLitros\": 150.5,\n  \"transporteId\": 1\n}"
+              "raw": "{\n  \"ordenoId\": {{ordenoId}},\n  \"centroAcopioId\": {{centroAcopioId}},\n  \"volumenCapturadoLitros\": 118.75,\n  \"transporteId\": {{transporteId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/lotes",
@@ -1264,7 +1624,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ordenoId\": 1,\n  \"centroAcopioId\": 1,\n  \"volumenCapturadoLitros\": 160.0,\n  \"transporteId\": 1\n}"
+              "raw": "{\n  \"ordenoId\": {{ordenoId}},\n  \"centroAcopioId\": {{centroAcopioId}},\n  \"volumenCapturadoLitros\": 118.75,\n  \"transporteId\": {{transporteId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/lotes/{{id}}",
@@ -1349,7 +1709,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"transporteId\": 1,\n  \"centroAcopioId\": 1,\n  \"fechaHoraEntrada\": \"2026-04-29T11:00:00Z\",\n  \"usuarioId\": 1,\n  \"temperaturaRecepcion\": 10,\n  \"volumenLitrosRecibidos\": 250.0\n}"
+              "raw": "{\n  \"transporteId\": {{transporteId}},\n  \"centroAcopioId\": {{centroAcopioId}},\n  \"fechaHoraEntrada\": \"2026-04-29T11:30:00Z\",\n  \"usuarioId\": {{usuarioId}},\n  \"temperaturaRecepcion\": 3,\n  \"volumenLitrosRecibidos\": 115.5\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/recepciones-acopio",
@@ -1375,7 +1735,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"transporteId\": 1,\n  \"centroAcopioId\": 1,\n  \"fechaHoraEntrada\": \"2026-04-29T11:30:00Z\",\n  \"usuarioId\": 1,\n  \"temperaturaRecepcion\": 11,\n  \"volumenLitrosRecibidos\": 255.0\n}"
+              "raw": "{\n  \"transporteId\": {{transporteId}},\n  \"centroAcopioId\": {{centroAcopioId}},\n  \"fechaHoraEntrada\": \"2026-04-29T11:30:00Z\",\n  \"usuarioId\": {{usuarioId}},\n  \"temperaturaRecepcion\": 3,\n  \"volumenLitrosRecibidos\": 115.5\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/recepciones-acopio/{{id}}",
@@ -1460,7 +1820,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"loteId\": 1,\n  \"tecnicoPorUsuarioId\": 1,\n  \"fechaHoraToma\": \"2026-04-29T11:30:00Z\"\n}"
+              "raw": "{\n  \"loteId\": {{loteId}},\n  \"tecnicoPorUsuarioId\": {{usuarioId}},\n  \"fechaHoraToma\": \"2026-04-29T12:00:00Z\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/muestras",
@@ -1486,7 +1846,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"loteId\": 1,\n  \"tecnicoPorUsuarioId\": 1,\n  \"fechaHoraToma\": \"2026-04-29T12:00:00Z\"\n}"
+              "raw": "{\n  \"loteId\": {{loteId}},\n  \"tecnicoPorUsuarioId\": {{usuarioId}},\n  \"fechaHoraToma\": \"2026-04-29T12:30:00Z\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/muestras/{{id}}",
@@ -1522,7 +1882,7 @@
       ]
     },
     {
-      "name": "Análisis de Calidad",
+      "name": "Analisis de Calidad",
       "item": [
         {
           "name": "GET /api/analisis-calidad",
@@ -1571,7 +1931,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"muestraId\": 1,\n  \"fechaHoraAnalisis\": \"2026-04-29T13:00:00Z\",\n  \"observaciones\": \"Análisis inicial\"\n}"
+              "raw": "{\n  \"muestraId\": {{muestraId}},\n  \"fechaHoraAnalisis\": \"2026-04-29T13:00:00Z\",\n  \"observaciones\": \"Analisis inicial\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/analisis-calidad",
@@ -1597,7 +1957,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"muestraId\": 1,\n  \"fechaHoraAnalisis\": \"2026-04-29T14:00:00Z\",\n  \"observaciones\": \"Observaciones actualizadas\"\n}"
+              "raw": "{\n  \"muestraId\": {{muestraId}},\n  \"fechaHoraAnalisis\": \"2026-04-29T14:00:00Z\",\n  \"observaciones\": \"Observaciones actualizadas\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/analisis-calidad/{{id}}",
@@ -1633,7 +1993,7 @@
       ]
     },
     {
-      "name": "Parámetros de Calidad",
+      "name": "Parametros de Calidad",
       "item": [
         {
           "name": "GET /api/parametros-calidad",
@@ -1744,7 +2104,7 @@
       ]
     },
     {
-      "name": "Resultados de Parámetro",
+      "name": "Resultados de Parametro",
       "item": [
         {
           "name": "GET /api/resultados-parametro",
@@ -1794,7 +2154,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"analisisId\": 1,\n  \"parametroId\": 1,\n  \"valorResultado\": 5.5,\n  \"observacion\": \"Dentro de rango\"\n}"
+              "raw": "{\n  \"analisisId\": {{analisisId}},\n  \"parametroId\": {{parametroId}},\n  \"valorResultado\": 5.5,\n  \"observacion\": \"Dentro de rango\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/resultados-parametro",

@@ -1,31 +1,68 @@
+using System.Text.Json.Serialization;
+using BackendIntegrador.Application.Common;
+
 namespace BackendIntegrador.Application.Dtos;
 
 public record CentroAcopioResumenDto(int CentroAcopioId, string Nombre);
 
 public record RolResumenDto(int RolId, string Nombre, string? Descripcion);
 
-public record ProductorAlcanceDto(
+public record ProductorDatosDto(
     int ProductorId,
     string Nombre,
     string Documento,
     string? Telefono,
     int TipoDocumentoId);
 
-public record FincaAlcanceDto(int FincaId, string Nombre, int MunicipioId, bool PuedeOperar);
+public record FincaResumenDto(int FincaId, string Nombre, int MunicipioId);
 
-public record UsuarioAlcanceDto(
-    string Tipo,
-    ProductorAlcanceDto? Productor,
-    IReadOnlyList<FincaAlcanceDto> Fincas);
-
-public record UsuarioPerfilDto(
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "tipoUsuario")]
+[JsonDerivedType(typeof(AdministradorPerfilDto), typeDiscriminator: UsuarioRoleTypes.Administrador)]
+[JsonDerivedType(typeof(CentroAcopioPerfilDto), typeDiscriminator: UsuarioRoleTypes.CentroAcopio)]
+[JsonDerivedType(typeof(TrabajadorCentroAcopioPerfilDto), typeDiscriminator: UsuarioRoleTypes.TrabajadorCentroAcopio)]
+[JsonDerivedType(typeof(ProductorPerfilDto), typeDiscriminator: UsuarioRoleTypes.Productor)]
+public abstract record UsuarioPerfilBaseDto(
     int UsuarioId,
     string Email,
     string Estado,
     DateTime FechaCreacion,
-    CentroAcopioResumenDto? CentroAcopio,
-    IReadOnlyList<RolResumenDto> Roles,
-    UsuarioAlcanceDto Alcance);
+    RolResumenDto Rol);
+
+public sealed record AdministradorPerfilDto(
+    int UsuarioId,
+    string Email,
+    string Estado,
+    DateTime FechaCreacion,
+    RolResumenDto Rol)
+    : UsuarioPerfilBaseDto(UsuarioId, Email, Estado, FechaCreacion, Rol);
+
+public sealed record CentroAcopioPerfilDto(
+    int UsuarioId,
+    string Email,
+    string Estado,
+    DateTime FechaCreacion,
+    RolResumenDto Rol,
+    CentroAcopioResumenDto CentroAcopio)
+    : UsuarioPerfilBaseDto(UsuarioId, Email, Estado, FechaCreacion, Rol);
+
+public sealed record TrabajadorCentroAcopioPerfilDto(
+    int UsuarioId,
+    string Email,
+    string Estado,
+    DateTime FechaCreacion,
+    RolResumenDto Rol,
+    CentroAcopioResumenDto CentroAcopio)
+    : UsuarioPerfilBaseDto(UsuarioId, Email, Estado, FechaCreacion, Rol);
+
+public sealed record ProductorPerfilDto(
+    int UsuarioId,
+    string Email,
+    string Estado,
+    DateTime FechaCreacion,
+    RolResumenDto Rol,
+    ProductorDatosDto Productor,
+    IReadOnlyList<FincaResumenDto> Fincas)
+    : UsuarioPerfilBaseDto(UsuarioId, Email, Estado, FechaCreacion, Rol);
 
 public record UsuarioListadoDto(
     int UsuarioId,
@@ -33,7 +70,7 @@ public record UsuarioListadoDto(
     string Estado,
     DateTime FechaCreacion,
     string? CentroAcopioNombre,
-    IReadOnlyList<string> RolesResumen,
+    string RolNombre,
     string TipoUsuario);
 
 public record FincaInicialDto(
@@ -54,16 +91,16 @@ public record ProvisionarUsuarioDto(
     string Email,
     string Password,
     string Estado,
+    int RolId,
     int? CentroAcopioId,
-    IReadOnlyList<int> RolIds,
     ProductorProvisionDto? Productor);
 
 public record ActualizarUsuarioDto(
     string Email,
     string Estado,
+    int RolId,
     int? CentroAcopioId,
     string? Password,
-    IReadOnlyList<int> RolIds,
     ProductorProvisionDto? Productor);
 
 public record AuthUsuarioDto(
@@ -71,6 +108,5 @@ public record AuthUsuarioDto(
     string Email,
     string Estado,
     DateTime FechaCreacion,
-    int? CentroAcopioId,
-    IReadOnlyList<string> Roles,
-    string AlcanceResumido);
+    string TipoUsuario,
+    string RolNombre);

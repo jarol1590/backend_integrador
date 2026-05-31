@@ -248,14 +248,14 @@ public class CrudIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task ProvisionarUsuario_ReturnsCreated()
     {
-        var roleId = await SeedRolAsync("Rol Provision Test");
+        var roleId = await SeedRolAsync("Administrador");
 
         var dto = new ProvisionarUsuarioDto(
             "roluser@example.com",
             "SecurePassword123!",
             "activo",
+            roleId,
             null,
-            new List<int> { roleId },
             null);
 
         var response = await PostJsonAsync("api/usuarios", dto);

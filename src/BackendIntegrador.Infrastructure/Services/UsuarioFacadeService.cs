@@ -1,4 +1,5 @@
 using BackendIntegrador.Application.Abstractions;
+using BackendIntegrador.Application.Common;
 using BackendIntegrador.Application.Dtos;
 using BackendIntegrador.Domain.Entities;
 using BackendIntegrador.Infrastructure.Persistence;
@@ -24,7 +25,7 @@ internal sealed class UsuarioFacadeService : IUsuarioFacadeService
                 u.FechaCreacion,
                 u.CentroAcopioId,
                 CentroAcopioNombre = u.CentroAcopio != null ? u.CentroAcopio.Nombre : null,
-                Roles = u.UsuarioRoles.Select(ur => ur.Rol.Nombre).ToList()
+                RolNombre = u.UsuarioRoles.Select(ur => ur.Rol.Nombre).FirstOrDefault()
             })
             .ToListAsync(cancellationToken);
 
@@ -35,53 +36,93 @@ internal sealed class UsuarioFacadeService : IUsuarioFacadeService
                 u.Estado,
                 u.FechaCreacion,
                 u.CentroAcopioNombre,
-                u.Roles,
-                UsuarioAlcanceHelper.DerivarTipoUsuario(u.Roles, u.CentroAcopioId)))
+                u.RolNombre ?? "Sin rol",
+                UsuarioRoleTypes.ResolveTipoFromRolNombre(u.RolNombre) ?? "sin_asignar"))
             .ToList();
     }
 
-    public async Task<UsuarioPerfilDto?> GetPerfilAsync(int usuarioId, CancellationToken cancellationToken = default)
+    public async Task<UsuarioPerfilBaseDto?> GetPerfilAsync(int usuarioId, CancellationToken cancellationToken = default)
     {
-        var usuario = await LoadUsuarioCompletoAsync(usuarioId, cancellationToken);
-        return usuario is null ? null : MapPerfil(usuario);
+        var baseData = await _db.Usuarios
+            .AsNoTracking()
+            .Where(u => u.UsuarioId == usuarioId)
+            .Select(u => new
+            {
+                Usuario = u,
+                Rol = u.UsuarioRoles.Select(ur => ur.Rol).FirstOrDefault()
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (baseData?.Rol is null)
+            return null;
+
+        var tipo = UsuarioRoleTypes.ResolveTipoFromRolNombre(baseData.Rol.Nombre);
+        if (tipo is null)
+            return null;
+
+        if (UsuarioRoleTypes.IsProductor(tipo))
+        {
+            var productor = await _db.Productores
+                .AsNoTracking()
+                .Include(p => p.Fincas)
+                .FirstOrDefaultAsync(p => p.UsuarioId == usuarioId, cancellationToken);
+
+            if (productor is null)
+                return null;
+
+            return UsuarioPerfilMapper.Map(baseData.Usuario, baseData.Rol, tipo, productor);
+        }
+
+        if (UsuarioRoleTypes.RequiresCentroAcopio(tipo))
+        {
+            var usuario = await _db.Usuarios
+                .AsNoTracking()
+                .Include(u => u.CentroAcopio)
+                .FirstOrDefaultAsync(u => u.UsuarioId == usuarioId, cancellationToken);
+
+            if (usuario?.CentroAcopio is null)
+                return null;
+
+            return UsuarioPerfilMapper.Map(usuario, baseData.Rol, tipo);
+        }
+
+        return UsuarioPerfilMapper.Map(baseData.Usuario, baseData.Rol, tipo);
     }
 
-    public async Task<UsuarioPerfilDto> ProvisionarAsync(ProvisionarUsuarioDto dto, CancellationToken cancellationToken = default)
+    public async Task<UsuarioPerfilBaseDto> ProvisionarAsync(ProvisionarUsuarioDto dto, CancellationToken cancellationToken = default)
     {
         ValidateEmail(dto.Email);
         if (string.IsNullOrWhiteSpace(dto.Password))
             throw new InvalidOperationException("La contraseña es requerida.");
-        if (dto.RolIds is null || dto.RolIds.Count == 0)
-            throw new InvalidOperationException("Debe asignar al menos un rol.");
 
         if (await _db.Usuarios.AnyAsync(u => u.Email == dto.Email, cancellationToken))
             throw new InvalidOperationException("El email ya está registrado.");
 
-        var roles = await _db.Roles
-            .Where(r => dto.RolIds.Contains(r.RolId))
-            .ToListAsync(cancellationToken);
+        var rol = await _db.Roles.FindAsync(new object[] { dto.RolId }, cancellationToken);
+        if (rol is null)
+            throw new InvalidOperationException("El rol indicado no existe.");
 
-        if (roles.Count != dto.RolIds.Count)
-            throw new InvalidOperationException("Uno o más roles no existen.");
-
-        await ValidateProductorRequirementAsync(roles, dto.Productor, null, cancellationToken);
+        var tipo = UsuarioRoleValidator.ValidateProvision(rol, dto.CentroAcopioId, dto.Productor);
+        await ValidateCentroAcopioExistsAsync(dto.CentroAcopioId, cancellationToken);
+        await ValidateProductorDocumentAsync(dto.Productor, null, cancellationToken);
 
         await using var tx = await _db.Database.BeginTransactionAsync(cancellationToken);
         try
         {
+            var centroAcopioId = UsuarioRoleTypes.IsProductor(tipo) ? null : dto.CentroAcopioId;
+
             var usuario = new Usuario
             {
                 Email = dto.Email.Trim(),
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Estado = dto.Estado,
                 FechaCreacion = DateTime.UtcNow,
-                CentroAcopioId = dto.CentroAcopioId
+                CentroAcopioId = centroAcopioId
             };
             _db.Usuarios.Add(usuario);
             await _db.SaveChangesAsync(cancellationToken);
 
-            foreach (var rolId in dto.RolIds)
-                _db.UsuarioRoles.Add(new UsuarioRol { UsuarioId = usuario.UsuarioId, RolId = rolId });
+            _db.UsuarioRoles.Add(new UsuarioRol { UsuarioId = usuario.UsuarioId, RolId = dto.RolId });
 
             if (dto.Productor is not null)
             {
@@ -122,11 +163,9 @@ internal sealed class UsuarioFacadeService : IUsuarioFacadeService
         }
     }
 
-    public async Task<UsuarioPerfilDto> ActualizarAsync(int usuarioId, ActualizarUsuarioDto dto, CancellationToken cancellationToken = default)
+    public async Task<UsuarioPerfilBaseDto> ActualizarAsync(int usuarioId, ActualizarUsuarioDto dto, CancellationToken cancellationToken = default)
     {
         ValidateEmail(dto.Email);
-        if (dto.RolIds is null || dto.RolIds.Count == 0)
-            throw new InvalidOperationException("Debe asignar al menos un rol.");
 
         var usuario = await _db.Usuarios
             .Include(u => u.UsuarioRoles)
@@ -139,35 +178,30 @@ internal sealed class UsuarioFacadeService : IUsuarioFacadeService
         if (await _db.Usuarios.AnyAsync(u => u.Email == dto.Email && u.UsuarioId != usuarioId, cancellationToken))
             throw new InvalidOperationException("El email ya está registrado.");
 
-        var roles = await _db.Roles
-            .Where(r => dto.RolIds.Contains(r.RolId))
-            .ToListAsync(cancellationToken);
+        var rol = await _db.Roles.FindAsync(new object[] { dto.RolId }, cancellationToken);
+        if (rol is null)
+            throw new InvalidOperationException("El rol indicado no existe.");
 
-        if (roles.Count != dto.RolIds.Count)
-            throw new InvalidOperationException("Uno o más roles no existen.");
-
-        await ValidateProductorRequirementAsync(roles, dto.Productor, usuario.Productor?.ProductorId, cancellationToken);
+        var hadProductor = usuario.Productor is not null;
+        var tipo = UsuarioRoleValidator.ValidateUpdate(rol, dto.CentroAcopioId, dto.Productor, hadProductor);
+        await ValidateCentroAcopioExistsAsync(dto.CentroAcopioId, cancellationToken);
+        await ValidateProductorDocumentAsync(dto.Productor, usuario.Productor?.ProductorId, cancellationToken);
 
         await using var tx = await _db.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             usuario.Email = dto.Email.Trim();
             usuario.Estado = dto.Estado;
-            usuario.CentroAcopioId = dto.CentroAcopioId;
+            usuario.CentroAcopioId = UsuarioRoleTypes.IsProductor(tipo) ? null : dto.CentroAcopioId;
             if (!string.IsNullOrWhiteSpace(dto.Password))
                 usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-            var rolesActuales = usuario.UsuarioRoles.ToList();
-            var rolesNuevos = dto.RolIds.ToHashSet();
-
-            foreach (var ur in rolesActuales.Where(ur => !rolesNuevos.Contains(ur.RolId)))
+            foreach (var ur in usuario.UsuarioRoles.ToList())
                 _db.UsuarioRoles.Remove(ur);
 
-            var idsActuales = rolesActuales.Select(ur => ur.RolId).ToHashSet();
-            foreach (var rolId in rolesNuevos.Where(id => !idsActuales.Contains(id)))
-                _db.UsuarioRoles.Add(new UsuarioRol { UsuarioId = usuarioId, RolId = rolId });
+            _db.UsuarioRoles.Add(new UsuarioRol { UsuarioId = usuarioId, RolId = dto.RolId });
 
-            if (dto.Productor is not null)
+            if (UsuarioRoleTypes.IsProductor(tipo) && dto.Productor is not null)
             {
                 if (usuario.Productor is null)
                 {
@@ -211,58 +245,28 @@ internal sealed class UsuarioFacadeService : IUsuarioFacadeService
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<Usuario?> LoadUsuarioCompletoAsync(int usuarioId, CancellationToken cancellationToken) =>
-        await _db.Usuarios
-            .AsNoTracking()
-            .Include(u => u.CentroAcopio!)
-                .ThenInclude(c => c.Municipio)
-                .ThenInclude(m => m.Fincas)
-            .Include(u => u.UsuarioRoles)
-                .ThenInclude(ur => ur.Rol)
-            .Include(u => u.Productor!)
-                .ThenInclude(p => p.Fincas)
-            .FirstOrDefaultAsync(u => u.UsuarioId == usuarioId, cancellationToken);
-
-    private static UsuarioPerfilDto MapPerfil(Usuario usuario)
-    {
-        var roles = usuario.UsuarioRoles
-            .Select(ur => new RolResumenDto(ur.Rol.RolId, ur.Rol.Nombre, ur.Rol.Descripcion))
-            .ToList();
-
-        CentroAcopioResumenDto? centro = usuario.CentroAcopio is null
-            ? null
-            : new CentroAcopioResumenDto(usuario.CentroAcopio.CentroAcopioId, usuario.CentroAcopio.Nombre);
-
-        return new UsuarioPerfilDto(
-            usuario.UsuarioId,
-            usuario.Email,
-            usuario.Estado,
-            usuario.FechaCreacion,
-            centro,
-            roles,
-            UsuarioAlcanceHelper.BuildAlcance(usuario));
-    }
-
     private static void ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
             throw new InvalidOperationException("El email tiene un formato inválido.");
     }
 
-    private async Task ValidateProductorRequirementAsync(
-        IReadOnlyList<Rol> roles,
+    private async Task ValidateCentroAcopioExistsAsync(int? centroAcopioId, CancellationToken cancellationToken)
+    {
+        if (!centroAcopioId.HasValue)
+            return;
+
+        if (!await _db.CentrosAcopio.AnyAsync(c => c.CentroAcopioId == centroAcopioId.Value, cancellationToken))
+            throw new InvalidOperationException("El Centro de Acopio indicado no existe.");
+    }
+
+    private async Task ValidateProductorDocumentAsync(
         ProductorProvisionDto? productor,
         int? excludeProductorId,
         CancellationToken cancellationToken)
     {
-        var requiereProductor = roles.Any(r =>
-            r.Nombre.Contains("productor", StringComparison.OrdinalIgnoreCase));
-
-        if (!requiereProductor)
-            return;
-
         if (productor is null)
-            throw new InvalidOperationException("Los usuarios con rol Productor requieren datos de productor.");
+            return;
 
         if (await _db.Productores.AnyAsync(
                 p => p.Documento == productor.Documento && p.ProductorId != excludeProductorId,
