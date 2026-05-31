@@ -4,6 +4,7 @@ using System.Text;
 using BackendIntegrador.Application.Abstractions;
 using BackendIntegrador.Application.Common;
 using BackendIntegrador.Application.Dtos;
+using BackendIntegrador.Domain.Entities;
 using BackendIntegrador.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,15 +14,18 @@ namespace BackendIntegrador.Infrastructure.Services;
 internal sealed class AuthenticationService : IAuthenticationService
 {
     private readonly AppDbContext _db;
+    private readonly IRepository<Usuario> _usuarioRepo;
     private readonly JwtSettings _jwtSettings;
     private readonly IEmailService _emailService;
 
     public AuthenticationService(
         IRepository<Usuario> usuarioRepo,
+        AppDbContext db,
         JwtSettings jwtSettings,
         IEmailService emailService)
     {
         _db = db;
+        _usuarioRepo = usuarioRepo;
         _jwtSettings = jwtSettings;
         _emailService = emailService;
     }
