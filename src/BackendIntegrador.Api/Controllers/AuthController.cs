@@ -48,4 +48,37 @@ public sealed class AuthController : ControllerBase
 
         return Ok(new { message = "Contraseña actualizada exitosamente." });
     }
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(
+        ForgotPasswordDto dto,
+        CancellationToken cancellationToken)
+    {
+        await _authService.ForgotPasswordAsync(
+            dto,
+            cancellationToken);
+
+        return Ok(new
+        {
+            message =
+                "Si el correo existe, se enviaron instrucciones."
+        });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(
+        ResetPasswordDto dto,
+        CancellationToken cancellationToken)
+    {
+        await _authService.ResetPasswordAsync(
+            dto,
+            cancellationToken);
+
+        return Ok(new
+        {
+            message = "Contraseña actualizada correctamente."
+        });
+    }
 }
