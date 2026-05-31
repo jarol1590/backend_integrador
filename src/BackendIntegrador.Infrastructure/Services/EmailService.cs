@@ -35,9 +35,21 @@ public class EmailService : IEmailService
             _emailSettings.Port,
             MailKit.Security.SecureSocketOptions.StartTls);
 
-        await smtp.AuthenticateAsync(
-            _emailSettings.Username,
-            _emailSettings.Password);
+        Console.WriteLine($"SMTP Server: {_emailSettings.SmtpServer}");
+        Console.WriteLine($"Port: {_emailSettings.Port}");
+        Console.WriteLine($"Username: {_emailSettings.Username}");
+        try
+        {
+            await smtp.AuthenticateAsync(
+                _emailSettings.Username,
+                _emailSettings.Password);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error de autenticación SMTP: {ex.Message}");
+            throw new InvalidOperationException("Error al enviar el email. Por favor, revise la configuración del servidor SMTP.", ex);
+        }
+        
 
         await smtp.SendAsync(email);
 
