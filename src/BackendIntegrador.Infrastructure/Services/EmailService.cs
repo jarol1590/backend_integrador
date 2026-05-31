@@ -1,5 +1,9 @@
 using MailKit.Net.Smtp;
 using MimeKit;
+using BackendIntegrador.Application.Common;
+using BackendIntegrador.Application.Abstractions;
+
+namespace BackendIntegrador.Infrastructure.Services;
 
 public class EmailService : IEmailService
 {
@@ -11,7 +15,7 @@ public class EmailService : IEmailService
         var email = new MimeMessage();
 
         email.From.Add(
-            MailboxAddress.Parse("tucorreo@gmail.com"));
+           new MailboxAddress(_emailSettings.SenderName,_emailSettings.SenderEmail));
 
         email.To.Add(
             MailboxAddress.Parse(to));
@@ -27,16 +31,23 @@ public class EmailService : IEmailService
         using var smtp = new SmtpClient();
 
         await smtp.ConnectAsync(
-            "smtp.gmail.com",
-            587,
+            _emailSettings.SmtpServer,
+            _emailSettings.Port,
             MailKit.Security.SecureSocketOptions.StartTls);
 
         await smtp.AuthenticateAsync(
-            "tucorreo@gmail.com",
-            "APP_PASSWORD");
+            _emailSettings.Username,
+            _emailSettings.Password);
 
         await smtp.SendAsync(email);
 
         await smtp.DisconnectAsync(true);
+    }
+
+    private readonly EmailSettings _emailSettings;
+
+    public EmailService(EmailSettings emailSettings)
+    {
+        _emailSettings = emailSettings;
     }
 }
