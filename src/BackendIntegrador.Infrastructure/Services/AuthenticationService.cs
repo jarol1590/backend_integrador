@@ -129,22 +129,22 @@ internal sealed class AuthenticationService : IAuthenticationService
 
         //var link = $"http://localhost:5111/reset-password?token={resetToken}"; //Está quemado hay que corregirlo
 
-        /*await _emailService.SendAsync(
-            usuario.Email,
-            "Recuperación de contraseña",
-            $"""
-                <h2>Recuperación de contraseña</h2>
+        await _emailService.SendAsync(
+        usuario.Email,
+        "Recuperación de contraseña",
+        $"""
+        <h2>Recuperación de contraseña</h2>
 
-                <p>Haz clic en el siguiente enlace:</p>
+        <p>Utiliza el siguiente token para restablecer tu contraseña:</p>
 
-                <a href="{link}">
-                    Restablecer contraseña
-                </a>
-                """);
-        */
+        <code>{resetToken}</code>
 
-        Console.WriteLine($"[Simulación de envío de email] Enviar a: {usuario.Email}");
-        Console.WriteLine($"Token: {resetToken}");
+        <p>Este token expirará en 1 hora.</p>
+        """);
+        
+
+        //Console.WriteLine($"[Simulación de envío de email] Enviar a: {usuario.Email}");
+        //Console.WriteLine($"Token: {resetToken}");
     }
 
     private ClaimsPrincipal ValidatePasswordResetToken(string token)
