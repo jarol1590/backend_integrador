@@ -1,7 +1,9 @@
 using BackendIntegrador.Application.Abstractions;
 using BackendIntegrador.Application.Dtos;
+using BackendIntegrador.Application.Common;
 using BackendIntegrador.Infrastructure.Persistence;
 using BackendIntegrador.Infrastructure.Services;
+using BackendIntegrador.Infrastructure.Services.GemeloDigital;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +19,25 @@ public static class DependencyInjection
 
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(connectionString));
+
+        var openMeteoSettings = new OpenMeteoSettings();
+        configuration.GetSection("OpenMeteoSettings").Bind(openMeteoSettings);
+        services.AddSingleton(openMeteoSettings);
+
+        var gemeloSettings = new GemeloDigitalSettings();
+        configuration.GetSection("GemeloDigitalSettings").Bind(gemeloSettings);
+        services.AddSingleton(gemeloSettings);
+
+        services.AddHttpClient<IClimateDataProvider, OpenMeteoClimateProvider>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(openMeteoSettings.TimeoutSeconds);
+        });
+
+        services.AddScoped<IMilkQualityPredictor, HeuristicMilkQualityPredictor>();
+        services.AddScoped<IAlertaGemeloEvaluator, AlertaGemeloEvaluator>();
+        services.AddScoped<IFincaGemeloAuthorizationService, FincaGemeloAuthorizationService>();
+        services.AddScoped<IFincaGemeloService, FincaGemeloService>();
+        services.AddScoped<ICentroAcopioGemeloService, CentroAcopioGemeloService>();
 
         services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
 

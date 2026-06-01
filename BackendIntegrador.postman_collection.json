@@ -3,7 +3,7 @@
     "name": "BackendIntegrador API",
     "description": "Coleccion Postman para BackendIntegrador - Control Lacteo (.NET 8).\n\nFlujo recomendado:\n1. POST /api/auth/login (guarda accessToken automaticamente).\n2. Crear roles canonicos (carpeta Roles - Seed).\n3. Provisionar usuarios por rol (carpeta Usuarios - POST por rol).\n4. Consumir catalogos y trazabilidad lactea.\n\nModulo usuarios: respuestas polimorficas con tipoUsuario (administrador | centro_acopio | productor | trabajador_centro_acopio).\nUn usuario = un rol. Reset de contrasena en POST /api/usuarios/{id}/reset-password.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "auth": {
     "type": "bearer",
@@ -23,6 +23,14 @@
     {
       "key": "accessToken",
       "value": ""
+    },
+    {
+      "key": "fincaId",
+      "value": "1"
+    },
+    {
+      "key": "alertaId",
+      "value": "1"
     },
     {
       "key": "id",
@@ -1322,6 +1330,104 @@
                 "{{id}}"
               ]
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gemelo Digital",
+      "description": "Gemelo digital por finca: clima, predicciones y alertas preventivas. Requiere finca con latitud/longitud. Ejecutar POST sincronizar antes de consultar estado.",
+      "item": [
+        {
+          "name": "POST /api/fincas/:fincaId/gemelo/sincronizar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/sincronizar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "sincronizar"]
+            },
+            "description": "Sincroniza clima (Open-Meteo), recalcula predicciones y evalua alertas."
+          }
+        },
+        {
+          "name": "GET /api/fincas/:fincaId/gemelo/estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/estado",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "estado"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/fincas/:fincaId/gemelo/clima",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/clima?desde=2026-03-01&hasta=2026-05-30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "clima"],
+              "query": [
+                { "key": "desde", "value": "2026-03-01" },
+                { "key": "hasta", "value": "2026-05-30" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/fincas/:fincaId/gemelo/predicciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/predicciones?horizonteDias=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "predicciones"],
+              "query": [{ "key": "horizonteDias", "value": "7" }]
+            }
+          }
+        },
+        {
+          "name": "GET /api/fincas/:fincaId/gemelo/alertas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/alertas?activas=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "alertas"],
+              "query": [{ "key": "activas", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "PATCH /api/fincas/:fincaId/gemelo/alertas/:alertaId/leida",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/alertas/{{alertaId}}/leida",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "alertas", "{{alertaId}}", "leida"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/centros-acopio/:id/gemelo/riesgo-regional",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/centros-acopio/{{centroAcopioId}}/gemelo/riesgo-regional",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "centros-acopio", "{{centroAcopioId}}", "gemelo", "riesgo-regional"]
+            },
+            "description": "Vista agregada de riesgo climático por fincas que entregaron lotes al centro (90 días)."
           }
         }
       ]
