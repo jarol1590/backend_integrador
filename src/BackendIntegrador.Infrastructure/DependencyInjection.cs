@@ -4,6 +4,7 @@ using BackendIntegrador.Application.Common;
 using BackendIntegrador.Infrastructure.Persistence;
 using BackendIntegrador.Infrastructure.Services;
 using BackendIntegrador.Infrastructure.Services.GemeloDigital;
+using BackendIntegrador.Infrastructure.Services.Seeding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<DatabaseSeeder>();
 
         return services;
     }

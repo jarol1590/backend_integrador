@@ -3,6 +3,7 @@ using BackendIntegrador.Api.Middleware;
 using BackendIntegrador.Application.Common;
 using BackendIntegrador.Infrastructure;
 using BackendIntegrador.Infrastructure.Persistence;
+using BackendIntegrador.Infrastructure.Services.Seeding;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -91,7 +92,18 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+
+    var shouldSeed =
+        builder.Configuration.GetValue<bool>("SeedData:Enabled") ||
+        args.Any(a => string.Equals(a, "--seed", StringComparison.OrdinalIgnoreCase));
+
+    if (shouldSeed)
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+        seeder.SeedAsync().GetAwaiter().GetResult();
+    }
 }
 
 
