@@ -766,6 +766,7 @@ Importar [`BackendIntegrador.postman_collection.json`](BackendIntegrador.postman
 
 | Recurso | Descripción |
 |---------|-------------|
+| [`GemeloDigital_Vision.md`](GemeloDigital_Vision.md) | Informe de visión y diseño del Gemelo Digital (conceptual + técnico) |
 | [`BackendIntegrador.postman_collection.json`](BackendIntegrador.postman_collection.json) | Colección completa de endpoints |
 | [`GemeloDigital.md`](GemeloDigital.md) | Prompt y fases del módulo gemelo digital |
 | [`ArquitectoGemeloDigital.md`](ArquitectoGemeloDigital.md) | Requerimientos originales del gemelo |
