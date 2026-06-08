@@ -38,6 +38,7 @@ public class EmailService : IEmailService
         Console.WriteLine($"SMTP Server: {_emailSettings.SmtpServer}");
         Console.WriteLine($"Port: {_emailSettings.Port}");
         Console.WriteLine($"Username: {_emailSettings.Username}");
+        Console.WriteLine($"Password: {_emailSettings.Password}");
         try
         {
             await smtp.AuthenticateAsync(

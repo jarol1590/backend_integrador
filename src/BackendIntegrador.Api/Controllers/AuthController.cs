@@ -67,6 +67,22 @@ public sealed class AuthController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpPost("verify-reset-code")]
+    public async Task<IActionResult> VerifyResetCode(
+        VerifyResetCodeDto dto,
+        CancellationToken cancellationToken)
+    {
+        await _authService.VerifyResetCodeAsync(
+            dto,
+            cancellationToken);
+
+        return Ok(new
+        {
+            message = "Código válido."
+        });
+    }
+
+    [AllowAnonymous]
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(
         ResetPasswordDto dto,
