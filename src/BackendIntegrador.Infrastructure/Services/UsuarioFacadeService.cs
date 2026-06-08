@@ -89,6 +89,77 @@ internal sealed class UsuarioFacadeService : IUsuarioFacadeService
         return UsuarioPerfilMapper.Map(baseData.Usuario, baseData.Rol, tipo);
     }
 
+    public async Task<ProvisionarUsuarioDto?> GetInputAsync(int usuarioId, CancellationToken cancellationToken = default)
+    {
+        var data = await _db.Usuarios
+            .AsNoTracking()
+            .Where(u => u.UsuarioId == usuarioId)
+            .Select(u => new
+            {
+                u.UsuarioId,
+                u.Email,
+                u.Estado,
+                u.CentroAcopioId,
+                RolId = u.UsuarioRoles.Select(ur => ur.RolId).FirstOrDefault()
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (data is null || data.RolId == 0)
+            return null;
+
+        var rolNombre = await _db.Roles
+            .Where(r => r.RolId == data.RolId)
+            .Select(r => r.Nombre)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var tipo = UsuarioRoleTypes.ResolveTipoFromRolNombre(rolNombre);
+        if (tipo is null)
+            return null;
+
+        var esProductor = UsuarioRoleTypes.IsProductor(tipo);
+        var requiereCentro = UsuarioRoleTypes.RequiresCentroAcopio(tipo);
+
+        int? centroAcopioId = requiereCentro ? data.CentroAcopioId : null;
+        ProductorProvisionDto? productorDto = null;
+
+        if (esProductor)
+        {
+            var productor = await _db.Productores
+                .AsNoTracking()
+                .Include(p => p.Fincas)
+                .FirstOrDefaultAsync(p => p.UsuarioId == usuarioId, cancellationToken);
+
+            if (productor is not null)
+            {
+                var primeraFinca = productor.Fincas
+                    .OrderBy(f => f.FincaId)
+                    .FirstOrDefault();
+
+                productorDto = new ProductorProvisionDto(
+                    productor.Nombre,
+                    productor.Documento,
+                    productor.Telefono,
+                    productor.TipoDocumentoId,
+                    primeraFinca is null
+                        ? null
+                        : new FincaInicialDto(
+                            primeraFinca.Nombre,
+                            primeraFinca.Direccion,
+                            primeraFinca.Latitud,
+                            primeraFinca.Longitud,
+                            primeraFinca.MunicipioId));
+            }
+        }
+
+        return new ProvisionarUsuarioDto(
+            data.Email,
+            string.Empty,
+            data.Estado,
+            data.RolId,
+            centroAcopioId,
+            productorDto);
+    }
+
     public async Task<UsuarioPerfilBaseDto> ProvisionarAsync(ProvisionarUsuarioDto dto, CancellationToken cancellationToken = default)
     {
         ValidateEmail(dto.Email);

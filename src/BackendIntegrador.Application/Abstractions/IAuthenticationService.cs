@@ -8,5 +8,7 @@ public interface IAuthenticationService
 
     Task ForgotPasswordAsync(ForgotPasswordDto dto, CancellationToken cancellationToken = default);
 
+    Task VerifyResetCodeAsync(VerifyResetCodeDto dto, CancellationToken cancellationToken = default);
+
     Task ResetPasswordAsync(ResetPasswordDto dto, CancellationToken cancellationToken = default);
 }

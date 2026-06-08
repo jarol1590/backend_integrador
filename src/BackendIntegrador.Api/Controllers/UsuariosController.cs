@@ -40,6 +40,14 @@ public sealed class UsuariosController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpGet("public/{id:int}")]
+    public async Task<ActionResult<ProvisionarUsuarioDto>> GetByIdPublic(int id, CancellationToken cancellationToken)
+    {
+        var input = await _facade.GetInputAsync(id, cancellationToken);
+        return input is null ? NotFound() : Ok(input);
+    }
+
+    [AllowAnonymous]
     [HttpPost]
     public async Task<ActionResult<UsuarioPerfilBaseDto>> Create(
         [FromBody] ProvisionarUsuarioDto dto,

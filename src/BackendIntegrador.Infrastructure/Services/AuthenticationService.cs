@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -13,6 +14,8 @@ namespace BackendIntegrador.Infrastructure.Services;
 
 internal sealed class AuthenticationService : IAuthenticationService
 {
+    private static readonly ConcurrentDictionary<string, PasswordResetCode> _resetCodes = new();
+
     private readonly AppDbContext _db;
     private readonly IRepository<Usuario> _usuarioRepo;
     private readonly JwtSettings _jwtSettings;
@@ -29,6 +32,8 @@ internal sealed class AuthenticationService : IAuthenticationService
         _jwtSettings = jwtSettings;
         _emailService = emailService;
     }
+
+    private sealed record PasswordResetCode(int UsuarioId, DateTime ExpiresAt);
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto, CancellationToken cancellationToken = default)
     {
@@ -104,33 +109,6 @@ internal sealed class AuthenticationService : IAuthenticationService
         return tokenHandler.WriteToken(token);
     }
 
-    private string GeneratePasswordResetToken(Usuario usuario)
-    {
-        // Aquí podrías implementar un token de un solo uso para restablecer la contraseña
-        // Por simplicidad, usaremos un JWT con una expiración corta
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
-
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, usuario.UsuarioId.ToString()),
-            new Claim(ClaimTypes.Email, usuario.Email),
-            new Claim("purpose", "password_reset")
-        };
-
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddHours(1), // Token válido por 1 hora
-            Issuer = _jwtSettings.Issuer,
-            Audience = _jwtSettings.Audience,
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        };
-
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
-    }
-
     public async Task ForgotPasswordAsync(ForgotPasswordDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Email))
@@ -140,9 +118,9 @@ internal sealed class AuthenticationService : IAuthenticationService
         if (usuario is null)
             return; // No revelar que el email no existe
 
-        var resetToken = GeneratePasswordResetToken(usuario);
-
-        //var link = $"http://localhost:5111/reset-password?token={resetToken}"; //Está quemado hay que corregirlo
+        // Generar código de 5 dígitos
+        var code = Random.Shared.Next(10000, 99999).ToString();
+        _resetCodes[code] = new PasswordResetCode(usuario.UsuarioId, DateTime.UtcNow.AddHours(1));
 
         await _emailService.SendAsync(
         usuario.Email,
@@ -150,69 +128,50 @@ internal sealed class AuthenticationService : IAuthenticationService
         $"""
         <h2>Recuperación de contraseña</h2>
 
-        <p>Utiliza el siguiente token para restablecer tu contraseña:</p>
+        <p>Utiliza el siguiente código para restablecer tu contraseña:</p>
 
-        <code>{resetToken}</code>
+        <h1 style="letter-spacing: 8px; text-align: center;">{code}</h1>
 
-        <p>Este token expirará en 1 hora.</p>
+        <p>Este código expirará en 1 hora.</p>
         """);
-        
-
-        //Console.WriteLine($"[Simulación de envío de email] Enviar a: {usuario.Email}");
-        //Console.WriteLine($"Token: {resetToken}");
     }
 
-    private ClaimsPrincipal ValidatePasswordResetToken(string token)
+    public Task VerifyResetCodeAsync(VerifyResetCodeDto dto, CancellationToken cancellationToken = default)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
+        if (string.IsNullOrWhiteSpace(dto.Token))
+            throw new InvalidOperationException("Código requerido.");
 
-        var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
+        if (!_resetCodes.TryGetValue(dto.Token, out var resetCode))
+            throw new InvalidOperationException("Código inválido.");
 
-        var principal = tokenHandler.ValidateToken(
-            token,
-            new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
+        if (resetCode.ExpiresAt < DateTime.UtcNow)
+        {
+            _resetCodes.TryRemove(dto.Token, out _);
+            throw new InvalidOperationException("El código ha expirado.");
+        }
 
-                ValidateIssuer = true,
-                ValidIssuer = _jwtSettings.Issuer,
-
-                ValidateAudience = true,
-                ValidAudience = _jwtSettings.Audience,
-
-                ValidateLifetime = true,
-
-                ClockSkew = TimeSpan.Zero
-            },
-            out _);
-
-        var purpose = principal.FindFirst("purpose")?.Value;
-
-        if (purpose != "password_reset")
-            throw new InvalidOperationException(
-                "Token inválido para recuperación.");
-
-        return principal;
+        return Task.CompletedTask;
     }
 
     public async Task ResetPasswordAsync(ResetPasswordDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.NewPassword))
-            throw new InvalidOperationException("Token y nueva contraseña son requeridos.");
+            throw new InvalidOperationException("Código y nueva contraseña son requeridos.");
 
-        var principal = ValidatePasswordResetToken(dto.Token);
-        var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //var tokenHandler = new JwtSecurityTokenHandler();
-        //var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
+        if (!_resetCodes.TryGetValue(dto.Token, out var resetCode))
+            throw new InvalidOperationException("Código inválido.");
 
-        if (!int.TryParse(userId, out var usuarioId))
-            throw new InvalidOperationException(
-                "Token inválido.");
+        if (resetCode.ExpiresAt < DateTime.UtcNow)
+        {
+            _resetCodes.TryRemove(dto.Token, out _);
+            throw new InvalidOperationException("El código ha expirado.");
+        }
+
+        _resetCodes.TryRemove(dto.Token, out _);
 
         var usuario =
             await _usuarioRepo.FindAsync(
-                new object[] { usuarioId },
+                new object[] { resetCode.UsuarioId },
                 cancellationToken);
 
         if (usuario is null)
@@ -225,9 +184,5 @@ internal sealed class AuthenticationService : IAuthenticationService
         await _usuarioRepo.UpdateAsync(
             usuario,
             cancellationToken);
-
-
     }
-
-
 }

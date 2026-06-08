@@ -8,6 +8,7 @@ public record LoginDto(string Email, string Password);
 public record AuthResponseDto(string AccessToken, AuthUsuarioDto Usuario);
 public record ChangePasswordDto(string CurrentPassword, string NewPassword);
 public record ForgotPasswordDto(string Email);
+public record VerifyResetCodeDto(string Token);
 public record ResetPasswordDto(string Token, string NewPassword);
 
 public record RolDto(int RolId, string Nombre, string? Descripcion);
