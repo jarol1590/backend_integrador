@@ -6,13 +6,23 @@ using BackendIntegrador.Api.Middleware;
 using BackendIntegrador.Application.Common;
 using BackendIntegrador.Infrastructure;
 using BackendIntegrador.Infrastructure.Persistence;
+using BackendIntegrador.Infrastructure.Services.Seeding;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile(
+    $"appsettings.{builder.Environment.EnvironmentName}.local.json",
+    optional: true,
+    reloadOnChange: true);
+
+PostgresConnectionStringResolver.ApplyDatabaseUrlFallback(builder.Configuration);
 
 // Cargar configuración JWT
 var jwtSettings = new JwtSettings();
@@ -96,14 +106,33 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
+app.Logger.LogInformation(
+    "EmailSettings cargados. Server={SmtpServer}, Port={Port}, Sender={SenderEmail}, UsernameConfigured={UsernameConfigured}, PasswordConfigured={PasswordConfigured}",
+    emailSettings.SmtpServer,
+    emailSettings.Port,
+    emailSettings.SenderEmail,
+    !string.IsNullOrWhiteSpace(emailSettings.Username),
+    !string.IsNullOrWhiteSpace(emailSettings.Password));
+
 using (var scope = app.Services.CreateScope())
 {
-    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+
+    var shouldSeed =
+        builder.Configuration.GetValue<bool>("SeedData:Enabled") ||
+        args.Any(a => string.Equals(a, "--seed", StringComparison.OrdinalIgnoreCase));
+
+    if (shouldSeed)
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+        seeder.SeedAsync().GetAwaiter().GetResult();
+    }
 }
 
 
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
 {
     app.UseSwagger();
     app.UseSwaggerUI();

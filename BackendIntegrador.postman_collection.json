@@ -1,9 +1,9 @@
 {
   "info": {
     "name": "BackendIntegrador API",
-    "description": "Coleccion Postman para BackendIntegrador - Control Lacteo (.NET 8).\n\nFlujo recomendado:\n1. POST /api/auth/login (guarda accessToken automaticamente).\n2. Crear roles canonicos (carpeta Roles - Seed).\n3. Provisionar usuarios por rol (carpeta Usuarios - POST por rol).\n4. Consumir catalogos y trazabilidad lactea.\n\nModulo usuarios: respuestas polimorficas con tipoUsuario (administrador | centro_acopio | productor | trabajador_centro_acopio).\nUn usuario = un rol. Reset de contrasena en POST /api/usuarios/{id}/reset-password.",
+    "description": "Coleccion Postman para BackendIntegrador - Control Lacteo (.NET 8).\n\nFlujo recomendado:\n1. POST /api/auth/login (guarda accessToken automaticamente).\n2. Crear roles canonicos (carpeta Roles - Seed).\n3. Provisionar usuarios por rol (carpeta Usuarios - POST por rol).\n4. Consumir catalogos y trazabilidad lactea.\n\nModulo usuarios: respuestas polimorficas con tipoUsuario (administrador | centro_acopio | productor | trabajador_centro_acopio).\nUn usuario = un rol.\nReset admin: POST /api/usuarios/{id}/reset-password (requiere JWT).\nRecuperacion propia: Auth > Recuperar contrasena (forgot-password -> verify-reset-code -> reset-password, anonimo).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "2.0.0"
+    "version": "2.2.0"
   },
   "auth": {
     "type": "bearer",
@@ -23,6 +23,26 @@
     {
       "key": "accessToken",
       "value": ""
+    },
+    {
+      "key": "resetEmail",
+      "value": "admin@example.com"
+    },
+    {
+      "key": "resetToken",
+      "value": ""
+    },
+    {
+      "key": "newPasswordAfterReset",
+      "value": "NuevaSecret123!"
+    },
+    {
+      "key": "fincaId",
+      "value": "1"
+    },
+    {
+      "key": "alertaId",
+      "value": "1"
     },
     {
       "key": "id",
@@ -84,7 +104,7 @@
   "item": [
     {
       "name": "Auth",
-      "description": "Autenticacion JWT. Login sin token; change-password requiere Bearer.",
+      "description": "Autenticacion JWT. Login sin token; change-password requiere Bearer. Recuperacion de contrasena es anonima (carpeta Recuperar contrasena).",
       "item": [
         {
           "name": "POST /api/auth/login",
@@ -159,6 +179,159 @@
               ]
             }
           }
+        },
+        {
+          "name": "Recuperar contrasena",
+          "description": "Flujo de recuperacion anonimo. Requiere EmailSettings configurado en .env o Render.\n\n1. Ejecutar forgot-password con {{resetEmail}}.\n2. Revisar el correo y pegar el codigo de 5 digitos en la variable resetToken.\n3. Ejecutar verify-reset-code.\n4. Ejecutar reset-password.\n5. (Opcional) Volver a login con la nueva contrasena.\n\nNota: los codigos viven en memoria del API; un reinicio invalida el token.",
+          "item": [
+            {
+              "name": "POST /api/auth/forgot-password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{resetEmail}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/forgot-password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "Envia un codigo de 5 digitos al correo si el usuario existe. Respuesta generica por seguridad.",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Mensaje generico de confirmacion', function () {",
+                      "    const json = pm.response.json();",
+                      "    pm.expect(json.message).to.include('Si el correo existe');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST /api/auth/verify-reset-code",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{resetToken}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/verify-reset-code",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "verify-reset-code"
+                  ]
+                },
+                "description": "Valida el codigo recibido por correo. Pegar el codigo en la variable resetToken antes de ejecutar.",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Codigo valido', function () {",
+                      "    const json = pm.response.json();",
+                      "    pm.expect(json.message).to.eql('Código válido.');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST /api/auth/reset-password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"{{newPasswordAfterReset}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/reset-password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "reset-password"
+                  ]
+                },
+                "description": "Restablece la contrasena usando el codigo valido. Invalida el token tras el uso.",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Contrasena actualizada', function () {",
+                      "    const json = pm.response.json();",
+                      "    pm.expect(json.message).to.eql('Contraseña actualizada correctamente.');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -1322,6 +1495,104 @@
                 "{{id}}"
               ]
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gemelo Digital",
+      "description": "Gemelo digital por finca: clima, predicciones y alertas preventivas. Requiere finca con latitud/longitud. Ejecutar POST sincronizar antes de consultar estado.",
+      "item": [
+        {
+          "name": "POST /api/fincas/:fincaId/gemelo/sincronizar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/sincronizar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "sincronizar"]
+            },
+            "description": "Sincroniza clima (Open-Meteo), recalcula predicciones y evalua alertas."
+          }
+        },
+        {
+          "name": "GET /api/fincas/:fincaId/gemelo/estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/estado",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "estado"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/fincas/:fincaId/gemelo/clima",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/clima?desde=2026-03-01&hasta=2026-05-30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "clima"],
+              "query": [
+                { "key": "desde", "value": "2026-03-01" },
+                { "key": "hasta", "value": "2026-05-30" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/fincas/:fincaId/gemelo/predicciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/predicciones?horizonteDias=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "predicciones"],
+              "query": [{ "key": "horizonteDias", "value": "7" }]
+            }
+          }
+        },
+        {
+          "name": "GET /api/fincas/:fincaId/gemelo/alertas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/alertas?activas=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "alertas"],
+              "query": [{ "key": "activas", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "PATCH /api/fincas/:fincaId/gemelo/alertas/:alertaId/leida",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/fincas/{{fincaId}}/gemelo/alertas/{{alertaId}}/leida",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fincas", "{{fincaId}}", "gemelo", "alertas", "{{alertaId}}", "leida"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/centros-acopio/:id/gemelo/riesgo-regional",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/centros-acopio/{{centroAcopioId}}/gemelo/riesgo-regional",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "centros-acopio", "{{centroAcopioId}}", "gemelo", "riesgo-regional"]
+            },
+            "description": "Vista agregada de riesgo climático por fincas que entregaron lotes al centro (90 días)."
           }
         }
       ]

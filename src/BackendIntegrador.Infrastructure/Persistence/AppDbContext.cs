@@ -5,7 +5,7 @@ namespace BackendIntegrador.Infrastructure.Persistence;
 
 public sealed class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    public AppDbContext(DbContextOptions options) : base(options)
     {
     }
 
@@ -27,6 +27,10 @@ public sealed class AppDbContext : DbContext
     public DbSet<AnalisisCalidad> AnalisisCalidad => Set<AnalisisCalidad>();
     public DbSet<ParametroCalidad> ParametrosCalidad => Set<ParametroCalidad>();
     public DbSet<ResultadoParametro> ResultadosParametro => Set<ResultadoParametro>();
+    public DbSet<FincaGemeloEstado> FincasGemeloEstado => Set<FincaGemeloEstado>();
+    public DbSet<LecturaClimatica> LecturasClimaticas => Set<LecturaClimatica>();
+    public DbSet<PrediccionGemelo> PrediccionesGemelo => Set<PrediccionGemelo>();
+    public DbSet<AlertaGemelo> AlertasGemelo => Set<AlertaGemelo>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -161,6 +165,56 @@ public sealed class AppDbContext : DbContext
             e.Property(p => p.ValorMaximo).HasPrecision(18, 6);
             e.Property(p => p.Descripcion).HasMaxLength(512);
             e.HasOne(p => p.CentroAcopio).WithMany().HasForeignKey(p => p.CentroAcopioId).IsRequired(false);
+        });
+
+        modelBuilder.Entity<FincaGemeloEstado>(e =>
+        {
+            e.HasKey(g => g.FincaId);
+            e.Property(g => g.VersionMotor).HasMaxLength(32);
+            e.Property(g => g.FuenteClima).HasMaxLength(64);
+            e.Property(g => g.EstadoSync).HasMaxLength(32);
+            e.Property(g => g.UltimoError).HasMaxLength(1024);
+            e.HasOne(g => g.Finca).WithOne(f => f.GemeloEstado).HasForeignKey<FincaGemeloEstado>(g => g.FincaId);
+        });
+
+        modelBuilder.Entity<LecturaClimatica>(e =>
+        {
+            e.HasKey(l => l.LecturaId);
+            e.HasIndex(l => new { l.FincaId, l.Fecha }).IsUnique();
+            e.HasIndex(l => l.Fecha);
+            e.Property(l => l.TempMin).HasPrecision(8, 2);
+            e.Property(l => l.TempMax).HasPrecision(8, 2);
+            e.Property(l => l.TempMedia).HasPrecision(8, 2);
+            e.Property(l => l.HumedadMedia).HasPrecision(8, 2);
+            e.Property(l => l.PrecipitacionMm).HasPrecision(8, 2);
+            e.Property(l => l.ThiMax).HasPrecision(8, 2);
+            e.Property(l => l.Fuente).HasMaxLength(64);
+            e.HasOne(l => l.Finca).WithMany(f => f.LecturasClimaticas).HasForeignKey(l => l.FincaId);
+        });
+
+        modelBuilder.Entity<PrediccionGemelo>(e =>
+        {
+            e.HasKey(p => p.PrediccionId);
+            e.HasIndex(p => new { p.FincaId, p.TipoPrediccion, p.HorizonteDias });
+            e.HasIndex(p => p.GeneradaUtc);
+            e.Property(p => p.TipoPrediccion).HasMaxLength(64);
+            e.Property(p => p.Valor).HasPrecision(18, 4);
+            e.Property(p => p.Confianza).HasPrecision(4, 3);
+            e.Property(p => p.Unidad).HasMaxLength(32);
+            e.HasOne(p => p.Finca).WithMany(f => f.PrediccionesGemelo).HasForeignKey(p => p.FincaId);
+        });
+
+        modelBuilder.Entity<AlertaGemelo>(e =>
+        {
+            e.HasKey(a => a.AlertaId);
+            e.HasIndex(a => new { a.FincaId, a.Leida, a.CreadaUtc });
+            e.HasIndex(a => a.ExpiraUtc);
+            e.Property(a => a.TipoAlerta).HasMaxLength(64);
+            e.Property(a => a.Severidad).HasMaxLength(16);
+            e.Property(a => a.Titulo).HasMaxLength(256);
+            e.Property(a => a.Mensaje).HasMaxLength(1024);
+            e.Property(a => a.Recomendacion).HasMaxLength(1024);
+            e.HasOne(a => a.Finca).WithMany(f => f.AlertasGemelo).HasForeignKey(a => a.FincaId);
         });
 
         foreach (var fk in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))

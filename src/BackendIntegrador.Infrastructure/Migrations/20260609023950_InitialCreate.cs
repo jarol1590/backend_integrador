@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -15,9 +16,9 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "Departamentos",
                 columns: table => new
                 {
-                    DepartamentoId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false)
+                    DepartamentoId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -28,12 +29,12 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "ParametrosCalidad",
                 columns: table => new
                 {
-                    ParametroId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false),
-                    Unidad = table.Column<string>(type: "TEXT", nullable: true),
-                    ValorMinimo = table.Column<decimal>(type: "TEXT", precision: 18, scale: 6, nullable: true),
-                    ValorMaximo = table.Column<decimal>(type: "TEXT", precision: 18, scale: 6, nullable: true)
+                    ParametroId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Unidad = table.Column<string>(type: "text", nullable: true),
+                    ValorMinimo = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: true),
+                    ValorMaximo = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -44,10 +45,10 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "Roles",
                 columns: table => new
                 {
-                    RolId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false),
-                    Descripcion = table.Column<string>(type: "TEXT", nullable: true)
+                    RolId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Descripcion = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -58,10 +59,10 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "TiposDocumento",
                 columns: table => new
                 {
-                    TipoDocumentoId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
-                    Descripcion = table.Column<string>(type: "TEXT", nullable: true)
+                    TipoDocumentoId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Descripcion = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -72,12 +73,12 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "Transportes",
                 columns: table => new
                 {
-                    TransporteId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    PlacaVehiculo = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
-                    FechaHoraSalida = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    FechaHoraEntrada = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    TemperaturaInicio = table.Column<int>(type: "INTEGER", nullable: true)
+                    TransporteId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PlacaVehiculo = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    FechaHoraSalida = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    FechaHoraEntrada = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TemperaturaInicio = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -88,10 +89,10 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "Municipios",
                 columns: table => new
                 {
-                    MunicipioId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false),
-                    DepartamentoId = table.Column<int>(type: "INTEGER", nullable: false)
+                    MunicipioId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    DepartamentoId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -108,13 +109,13 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "CentrosAcopio",
                 columns: table => new
                 {
-                    CentroAcopioId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    Direccion = table.Column<string>(type: "TEXT", nullable: true),
-                    Latitud = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: true),
-                    Longitud = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: true),
-                    MunicipioId = table.Column<int>(type: "INTEGER", nullable: false)
+                    CentroAcopioId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    Direccion = table.Column<string>(type: "text", nullable: true),
+                    Latitud = table.Column<decimal>(type: "numeric(18,8)", precision: 18, scale: 8, nullable: true),
+                    Longitud = table.Column<decimal>(type: "numeric(18,8)", precision: 18, scale: 8, nullable: true),
+                    MunicipioId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -131,13 +132,13 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "Usuarios",
                 columns: table => new
                 {
-                    UsuarioId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 512, nullable: false),
-                    Estado = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
-                    FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CentroAcopioId = table.Column<int>(type: "INTEGER", nullable: true)
+                    UsuarioId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    PasswordHash = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    Estado = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CentroAcopioId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -154,13 +155,13 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "Productores",
                 columns: table => new
                 {
-                    ProductorId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    Documento = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
-                    Telefono = table.Column<string>(type: "TEXT", nullable: true),
-                    UsuarioId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TipoDocumentoId = table.Column<int>(type: "INTEGER", nullable: false)
+                    ProductorId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    Documento = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Telefono = table.Column<string>(type: "text", nullable: true),
+                    UsuarioId = table.Column<int>(type: "integer", nullable: false),
+                    TipoDocumentoId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -183,14 +184,14 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "RecepcionesAcopio",
                 columns: table => new
                 {
-                    RecepcionId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    TransporteId = table.Column<int>(type: "INTEGER", nullable: false),
-                    CentroAcopioId = table.Column<int>(type: "INTEGER", nullable: false),
-                    FechaHoraEntrada = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UsuarioId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TemperaturaRecepcion = table.Column<int>(type: "INTEGER", nullable: true),
-                    VolumenLitrosRecibidos = table.Column<decimal>(type: "TEXT", precision: 18, scale: 4, nullable: false)
+                    RecepcionId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TransporteId = table.Column<int>(type: "integer", nullable: false),
+                    CentroAcopioId = table.Column<int>(type: "integer", nullable: false),
+                    FechaHoraEntrada = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UsuarioId = table.Column<int>(type: "integer", nullable: false),
+                    TemperaturaRecepcion = table.Column<int>(type: "integer", nullable: true),
+                    VolumenLitrosRecibidos = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -219,8 +220,8 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "UsuarioRoles",
                 columns: table => new
                 {
-                    UsuarioId = table.Column<int>(type: "INTEGER", nullable: false),
-                    RolId = table.Column<int>(type: "INTEGER", nullable: false)
+                    UsuarioId = table.Column<int>(type: "integer", nullable: false),
+                    RolId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -243,14 +244,14 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "Fincas",
                 columns: table => new
                 {
-                    FincaId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    Direccion = table.Column<string>(type: "TEXT", nullable: true),
-                    Latitud = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: true),
-                    Longitud = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: true),
-                    ProductorId = table.Column<int>(type: "INTEGER", nullable: false),
-                    MunicipioId = table.Column<int>(type: "INTEGER", nullable: false)
+                    FincaId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    Direccion = table.Column<string>(type: "text", nullable: true),
+                    Latitud = table.Column<decimal>(type: "numeric(18,8)", precision: 18, scale: 8, nullable: true),
+                    Longitud = table.Column<decimal>(type: "numeric(18,8)", precision: 18, scale: 8, nullable: true),
+                    ProductorId = table.Column<int>(type: "integer", nullable: false),
+                    MunicipioId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -270,15 +271,96 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AlertasGemelo",
+                columns: table => new
+                {
+                    AlertaId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FincaId = table.Column<int>(type: "integer", nullable: false),
+                    TipoAlerta = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Severidad = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
+                    Titulo = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    Mensaje = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
+                    Recomendacion = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
+                    CreadaUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExpiraUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Leida = table.Column<bool>(type: "boolean", nullable: false),
+                    LeidaUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AlertasGemelo", x => x.AlertaId);
+                    table.ForeignKey(
+                        name: "FK_AlertasGemelo_Fincas_FincaId",
+                        column: x => x.FincaId,
+                        principalTable: "Fincas",
+                        principalColumn: "FincaId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FincasGemeloEstado",
+                columns: table => new
+                {
+                    FincaId = table.Column<int>(type: "integer", nullable: false),
+                    UltimaSyncUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    VersionMotor = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    FuenteClima = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    ScoreRiesgoGlobal = table.Column<int>(type: "integer", nullable: false),
+                    EstadoSync = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    UltimoError = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
+                    CreadoUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ActualizadoUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FincasGemeloEstado", x => x.FincaId);
+                    table.ForeignKey(
+                        name: "FK_FincasGemeloEstado_Fincas_FincaId",
+                        column: x => x.FincaId,
+                        principalTable: "Fincas",
+                        principalColumn: "FincaId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LecturasClimaticas",
+                columns: table => new
+                {
+                    LecturaId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FincaId = table.Column<int>(type: "integer", nullable: false),
+                    Fecha = table.Column<DateOnly>(type: "date", nullable: false),
+                    TempMin = table.Column<decimal>(type: "numeric(8,2)", precision: 8, scale: 2, nullable: false),
+                    TempMax = table.Column<decimal>(type: "numeric(8,2)", precision: 8, scale: 2, nullable: false),
+                    TempMedia = table.Column<decimal>(type: "numeric(8,2)", precision: 8, scale: 2, nullable: false),
+                    HumedadMedia = table.Column<decimal>(type: "numeric(8,2)", precision: 8, scale: 2, nullable: true),
+                    PrecipitacionMm = table.Column<decimal>(type: "numeric(8,2)", precision: 8, scale: 2, nullable: true),
+                    ThiMax = table.Column<decimal>(type: "numeric(8,2)", precision: 8, scale: 2, nullable: true),
+                    DiasConsecutivosCalor = table.Column<int>(type: "integer", nullable: false),
+                    Fuente = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LecturasClimaticas", x => x.LecturaId);
+                    table.ForeignKey(
+                        name: "FK_LecturasClimaticas_Fincas_FincaId",
+                        column: x => x.FincaId,
+                        principalTable: "Fincas",
+                        principalColumn: "FincaId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Ordenos",
                 columns: table => new
                 {
-                    OrdenoId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    FechaHoraInicio = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    FechaHoraFin = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    VolumenLitros = table.Column<decimal>(type: "TEXT", precision: 18, scale: 4, nullable: false),
-                    FincaId = table.Column<int>(type: "INTEGER", nullable: false)
+                    OrdenoId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FechaHoraInicio = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    FechaHoraFin = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    VolumenLitros = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: false),
+                    FincaId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -292,15 +374,41 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PrediccionesGemelo",
+                columns: table => new
+                {
+                    PrediccionId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FincaId = table.Column<int>(type: "integer", nullable: false),
+                    GeneradaUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    HorizonteDias = table.Column<int>(type: "integer", nullable: false),
+                    TipoPrediccion = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Valor = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: false),
+                    Confianza = table.Column<decimal>(type: "numeric(4,3)", precision: 4, scale: 3, nullable: false),
+                    Unidad = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true),
+                    DetalleJson = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PrediccionesGemelo", x => x.PrediccionId);
+                    table.ForeignKey(
+                        name: "FK_PrediccionesGemelo_Fincas_FincaId",
+                        column: x => x.FincaId,
+                        principalTable: "Fincas",
+                        principalColumn: "FincaId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Lotes",
                 columns: table => new
                 {
-                    LoteId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    OrdenoId = table.Column<int>(type: "INTEGER", nullable: false),
-                    CentroAcopioId = table.Column<int>(type: "INTEGER", nullable: false),
-                    VolumenCapturadoLitros = table.Column<decimal>(type: "TEXT", precision: 18, scale: 4, nullable: false),
-                    TransporteId = table.Column<int>(type: "INTEGER", nullable: true)
+                    LoteId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    OrdenoId = table.Column<int>(type: "integer", nullable: false),
+                    CentroAcopioId = table.Column<int>(type: "integer", nullable: false),
+                    VolumenCapturadoLitros = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: false),
+                    TransporteId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -329,11 +437,11 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "Muestras",
                 columns: table => new
                 {
-                    MuestraId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    LoteId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TecnicoPorUsuarioId = table.Column<int>(type: "INTEGER", nullable: false),
-                    FechaHoraToma = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    MuestraId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    LoteId = table.Column<int>(type: "integer", nullable: false),
+                    TecnicoPorUsuarioId = table.Column<int>(type: "integer", nullable: false),
+                    FechaHoraToma = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -356,11 +464,11 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "AnalisisCalidad",
                 columns: table => new
                 {
-                    AnalisisId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    MuestraId = table.Column<int>(type: "INTEGER", nullable: false),
-                    FechaHoraAnalisis = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Observaciones = table.Column<string>(type: "TEXT", nullable: true)
+                    AnalisisId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MuestraId = table.Column<int>(type: "integer", nullable: false),
+                    FechaHoraAnalisis = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Observaciones = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -377,10 +485,10 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "ResultadosParametro",
                 columns: table => new
                 {
-                    AnalisisId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ParametroId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ValorResultado = table.Column<decimal>(type: "TEXT", precision: 18, scale: 6, nullable: false),
-                    Observacion = table.Column<string>(type: "TEXT", nullable: true)
+                    AnalisisId = table.Column<int>(type: "integer", nullable: false),
+                    ParametroId = table.Column<int>(type: "integer", nullable: false),
+                    ValorResultado = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    Observacion = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -398,6 +506,16 @@ namespace BackendIntegrador.Infrastructure.Migrations
                         principalColumn: "ParametroId",
                         onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AlertasGemelo_ExpiraUtc",
+                table: "AlertasGemelo",
+                column: "ExpiraUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AlertasGemelo_FincaId_Leida_CreadaUtc",
+                table: "AlertasGemelo",
+                columns: new[] { "FincaId", "Leida", "CreadaUtc" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AnalisisCalidad_MuestraId",
@@ -424,6 +542,17 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 name: "IX_Fincas_ProductorId",
                 table: "Fincas",
                 column: "ProductorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LecturasClimaticas_Fecha",
+                table: "LecturasClimaticas",
+                column: "Fecha");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LecturasClimaticas_FincaId_Fecha",
+                table: "LecturasClimaticas",
+                columns: new[] { "FincaId", "Fecha" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Lotes_CentroAcopioId",
@@ -465,6 +594,16 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 table: "ParametrosCalidad",
                 column: "Nombre",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PrediccionesGemelo_FincaId_TipoPrediccion_HorizonteDias",
+                table: "PrediccionesGemelo",
+                columns: new[] { "FincaId", "TipoPrediccion", "HorizonteDias" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PrediccionesGemelo_GeneradaUtc",
+                table: "PrediccionesGemelo",
+                column: "GeneradaUtc");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Productores_Documento",
@@ -535,6 +674,18 @@ namespace BackendIntegrador.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AlertasGemelo");
+
+            migrationBuilder.DropTable(
+                name: "FincasGemeloEstado");
+
+            migrationBuilder.DropTable(
+                name: "LecturasClimaticas");
+
+            migrationBuilder.DropTable(
+                name: "PrediccionesGemelo");
+
             migrationBuilder.DropTable(
                 name: "RecepcionesAcopio");
 

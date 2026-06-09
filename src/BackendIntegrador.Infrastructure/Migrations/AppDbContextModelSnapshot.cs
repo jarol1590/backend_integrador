@@ -4,6 +4,7 @@ using BackendIntegrador.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -15,22 +16,84 @@ namespace BackendIntegrador.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("BackendIntegrador.Domain.Entities.AlertaGemelo", b =>
+                {
+                    b.Property<int>("AlertaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AlertaId"));
+
+                    b.Property<DateTime>("CreadaUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExpiraUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("FincaId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Leida")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LeidaUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<string>("Recomendacion")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<string>("Severidad")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("TipoAlerta")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("AlertaId");
+
+                    b.HasIndex("ExpiraUtc");
+
+                    b.HasIndex("FincaId", "Leida", "CreadaUtc");
+
+                    b.ToTable("AlertasGemelo");
+                });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.AnalisisCalidad", b =>
                 {
                     b.Property<int>("AnalisisId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AnalisisId"));
 
                     b.Property<DateTime>("FechaHoraAnalisis")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("MuestraId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Observaciones")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("AnalisisId");
 
@@ -43,26 +106,28 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("CentroAcopioId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CentroAcopioId"));
 
                     b.Property<string>("Direccion")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<decimal?>("Latitud")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("numeric(18,8)");
 
                     b.Property<decimal?>("Longitud")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("numeric(18,8)");
 
                     b.Property<int>("MunicipioId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("CentroAcopioId");
 
@@ -75,12 +140,14 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("DepartamentoId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DepartamentoId"));
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("DepartamentoId");
 
@@ -94,29 +161,31 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("FincaId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("FincaId"));
 
                     b.Property<string>("Direccion")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<decimal?>("Latitud")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("numeric(18,8)");
 
                     b.Property<decimal?>("Longitud")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("numeric(18,8)");
 
                     b.Property<int>("MunicipioId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<int>("ProductorId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("FincaId");
 
@@ -127,24 +196,123 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.ToTable("Fincas");
                 });
 
+            modelBuilder.Entity("BackendIntegrador.Domain.Entities.FincaGemeloEstado", b =>
+                {
+                    b.Property<int>("FincaId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ActualizadoUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreadoUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EstadoSync")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("FuenteClima")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("ScoreRiesgoGlobal")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UltimaSyncUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UltimoError")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<string>("VersionMotor")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("FincaId");
+
+                    b.ToTable("FincasGemeloEstado");
+                });
+
+            modelBuilder.Entity("BackendIntegrador.Domain.Entities.LecturaClimatica", b =>
+                {
+                    b.Property<int>("LecturaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LecturaId"));
+
+                    b.Property<int>("DiasConsecutivosCalor")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<int>("FincaId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Fuente")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<decimal?>("HumedadMedia")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
+
+                    b.Property<decimal?>("PrecipitacionMm")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
+
+                    b.Property<decimal>("TempMax")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
+
+                    b.Property<decimal>("TempMedia")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
+
+                    b.Property<decimal>("TempMin")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
+
+                    b.Property<decimal?>("ThiMax")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
+
+                    b.HasKey("LecturaId");
+
+                    b.HasIndex("Fecha");
+
+                    b.HasIndex("FincaId", "Fecha")
+                        .IsUnique();
+
+                    b.ToTable("LecturasClimaticas");
+                });
+
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Lote", b =>
                 {
                     b.Property<int>("LoteId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
-                    b.Property<int?>("CentroAcopioId")
-                        .HasColumnType("INTEGER");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LoteId"));
+
+                    b.Property<int>("CentroAcopioId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("OrdenoId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<int?>("TransporteId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("VolumenCapturadoLitros")
                         .HasPrecision(18, 4)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("numeric(18,4)");
 
                     b.HasKey("LoteId");
 
@@ -161,16 +329,18 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("MuestraId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MuestraId"));
 
                     b.Property<DateTime>("FechaHoraToma")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("LoteId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<int>("TecnicoPorUsuarioId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("MuestraId");
 
@@ -185,15 +355,17 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("MunicipioId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MunicipioId"));
 
                     b.Property<int>("DepartamentoId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("MunicipioId");
 
@@ -206,20 +378,22 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("OrdenoId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("OrdenoId"));
 
                     b.Property<DateTime?>("FechaHoraFin")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("FechaHoraInicio")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("FincaId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("VolumenLitros")
                         .HasPrecision(18, 4)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("numeric(18,4)");
 
                     b.HasKey("OrdenoId");
 
@@ -232,7 +406,9 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("ParametroId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ParametroId"));
 
                     b.Property<int?>("CentroAcopioId")
                         .HasColumnType("INTEGER");
@@ -244,21 +420,21 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<int>("Orden")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Unidad")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<decimal?>("ValorMaximo")
                         .HasPrecision(18, 6)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("numeric(18,6)");
 
                     b.Property<decimal?>("ValorMinimo")
                         .HasPrecision(18, 6)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("numeric(18,6)");
 
                     b.HasKey("ParametroId");
 
@@ -268,30 +444,78 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.ToTable("ParametrosCalidad");
                 });
 
+            modelBuilder.Entity("BackendIntegrador.Domain.Entities.PrediccionGemelo", b =>
+                {
+                    b.Property<int>("PrediccionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PrediccionId"));
+
+                    b.Property<decimal>("Confianza")
+                        .HasPrecision(4, 3)
+                        .HasColumnType("numeric(4,3)");
+
+                    b.Property<string>("DetalleJson")
+                        .HasColumnType("text");
+
+                    b.Property<int>("FincaId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("GeneradaUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("HorizonteDias")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TipoPrediccion")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Unidad")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<decimal>("Valor")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.HasKey("PrediccionId");
+
+                    b.HasIndex("GeneradaUtc");
+
+                    b.HasIndex("FincaId", "TipoPrediccion", "HorizonteDias");
+
+                    b.ToTable("PrediccionesGemelo");
+                });
+
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Productor", b =>
                 {
                     b.Property<int>("ProductorId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProductorId"));
 
                     b.Property<string>("Documento")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("Telefono")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<int>("TipoDocumentoId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<int>("UsuarioId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("ProductorId");
 
@@ -310,26 +534,28 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("RecepcionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RecepcionId"));
 
                     b.Property<int>("CentroAcopioId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("FechaHoraEntrada")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("TemperaturaRecepcion")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<int>("TransporteId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<int>("UsuarioId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("VolumenLitrosRecibidos")
                         .HasPrecision(18, 4)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("numeric(18,4)");
 
                     b.HasKey("RecepcionId");
 
@@ -345,17 +571,17 @@ namespace BackendIntegrador.Infrastructure.Migrations
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.ResultadoParametro", b =>
                 {
                     b.Property<int>("AnalisisId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<int>("ParametroId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Observacion")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<decimal>("ValorResultado")
                         .HasPrecision(18, 6)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("numeric(18,6)");
 
                     b.HasKey("AnalisisId", "ParametroId");
 
@@ -368,15 +594,17 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("RolId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RolId"));
 
                     b.Property<string>("Descripcion")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("RolId");
 
@@ -390,15 +618,17 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("TipoDocumentoId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TipoDocumentoId"));
 
                     b.Property<string>("Descripcion")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(64)");
 
                     b.HasKey("TipoDocumentoId");
 
@@ -450,21 +680,23 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("TransporteId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TransporteId"));
 
                     b.Property<DateTime?>("FechaHoraEntrada")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("FechaHoraSalida")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("PlacaVehiculo")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(32)");
 
                     b.Property<int?>("TemperaturaInicio")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("TransporteId");
 
@@ -475,28 +707,30 @@ namespace BackendIntegrador.Infrastructure.Migrations
                 {
                     b.Property<int>("UsuarioId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UsuarioId"));
 
                     b.Property<int?>("CentroAcopioId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(64)");
 
                     b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(512)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(512)");
 
                     b.HasKey("UsuarioId");
 
@@ -511,16 +745,27 @@ namespace BackendIntegrador.Infrastructure.Migrations
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.UsuarioRol", b =>
                 {
                     b.Property<int>("UsuarioId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<int>("RolId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("UsuarioId", "RolId");
 
                     b.HasIndex("RolId");
 
                     b.ToTable("UsuarioRoles");
+                });
+
+            modelBuilder.Entity("BackendIntegrador.Domain.Entities.AlertaGemelo", b =>
+                {
+                    b.HasOne("BackendIntegrador.Domain.Entities.Finca", "Finca")
+                        .WithMany("AlertasGemelo")
+                        .HasForeignKey("FincaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Finca");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.AnalisisCalidad", b =>
@@ -562,6 +807,28 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Navigation("Municipio");
 
                     b.Navigation("Productor");
+                });
+
+            modelBuilder.Entity("BackendIntegrador.Domain.Entities.FincaGemeloEstado", b =>
+                {
+                    b.HasOne("BackendIntegrador.Domain.Entities.Finca", "Finca")
+                        .WithOne("GemeloEstado")
+                        .HasForeignKey("BackendIntegrador.Domain.Entities.FincaGemeloEstado", "FincaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Finca");
+                });
+
+            modelBuilder.Entity("BackendIntegrador.Domain.Entities.LecturaClimatica", b =>
+                {
+                    b.HasOne("BackendIntegrador.Domain.Entities.Finca", "Finca")
+                        .WithMany("LecturasClimaticas")
+                        .HasForeignKey("FincaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Finca");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Lote", b =>
@@ -630,14 +897,15 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Navigation("Finca");
                 });
 
-            modelBuilder.Entity("BackendIntegrador.Domain.Entities.ParametroCalidad", b =>
+            modelBuilder.Entity("BackendIntegrador.Domain.Entities.PrediccionGemelo", b =>
                 {
-                    b.HasOne("BackendIntegrador.Domain.Entities.CentroAcopio", "CentroAcopio")
-                        .WithMany()
-                        .HasForeignKey("CentroAcopioId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.HasOne("BackendIntegrador.Domain.Entities.Finca", "Finca")
+                        .WithMany("PrediccionesGemelo")
+                        .HasForeignKey("FincaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("CentroAcopio");
+                    b.Navigation("Finca");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Productor", b =>
@@ -774,7 +1042,15 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Finca", b =>
                 {
+                    b.Navigation("AlertasGemelo");
+
+                    b.Navigation("GemeloEstado");
+
+                    b.Navigation("LecturasClimaticas");
+
                     b.Navigation("Ordenos");
+
+                    b.Navigation("PrediccionesGemelo");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Lote", b =>

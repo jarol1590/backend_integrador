@@ -13,4 +13,9 @@ public class Finca
     public Productor Productor { get; set; } = null!;
     public Municipio Municipio { get; set; } = null!;
     public ICollection<Ordeno> Ordenos { get; set; } = new List<Ordeno>();
+    public FincaGemeloEstado? GemeloEstado { get; set; }
+    public ICollection<LecturaClimatica> LecturasClimaticas { get; set; } = new List<LecturaClimatica>();
+    public ICollection<PrediccionGemelo> PrediccionesGemelo { get; set; } = new List<PrediccionGemelo>();
+    public ICollection<AlertaGemelo> AlertasGemelo { get; set; } = new List<AlertaGemelo>();
 }
+

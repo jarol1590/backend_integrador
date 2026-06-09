@@ -3,6 +3,7 @@ using BackendIntegrador.Application.Dtos;
 using BackendIntegrador.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 using System.Security.Claims;
 
 namespace BackendIntegrador.Api.Controllers;
@@ -13,11 +14,16 @@ public sealed class AuthController : ControllerBase
 {
     private readonly IAuthenticationService _authService;
     private readonly IRepository<Usuario> _usuarioRepo;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthenticationService authService, IRepository<Usuario> usuarioRepo)
+    public AuthController(
+        IAuthenticationService authService,
+        IRepository<Usuario> usuarioRepo,
+        ILogger<AuthController> logger)
     {
         _authService = authService;
         _usuarioRepo = usuarioRepo;
+        _logger = logger;
     }
 
     [AllowAnonymous]
@@ -55,15 +61,31 @@ public sealed class AuthController : ControllerBase
         ForgotPasswordDto dto,
         CancellationToken cancellationToken)
     {
-        await _authService.ForgotPasswordAsync(
-            dto,
-            cancellationToken);
+        var stopwatch = Stopwatch.StartNew();
+        _logger.LogInformation("POST /api/auth/forgot-password recibido.");
 
-        return Ok(new
+        try
         {
-            message =
-                "Si el correo existe, se enviaron instrucciones."
-        });
+            await _authService.ForgotPasswordAsync(dto, cancellationToken);
+
+            _logger.LogInformation(
+                "POST /api/auth/forgot-password respondió 200 en {ElapsedMs}ms.",
+                stopwatch.ElapsedMilliseconds);
+
+            return Ok(new
+            {
+                message = "Si el correo existe, se enviaron instrucciones."
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "POST /api/auth/forgot-password falló en {ElapsedMs}ms. ExceptionType={ExceptionType}",
+                stopwatch.ElapsedMilliseconds,
+                ex.GetType().Name);
+            throw;
+        }
     }
 
     [AllowAnonymous]
@@ -72,9 +94,7 @@ public sealed class AuthController : ControllerBase
         VerifyResetCodeDto dto,
         CancellationToken cancellationToken)
     {
-        await _authService.VerifyResetCodeAsync(
-            dto,
-            cancellationToken);
+        _logger.LogInformation("POST /api/auth/verify-reset-code recibido.");
 
         return Ok(new { token = dto.Token });
     }
@@ -85,13 +105,10 @@ public sealed class AuthController : ControllerBase
         ResetPasswordDto dto,
         CancellationToken cancellationToken)
     {
-        await _authService.ResetPasswordAsync(
-            dto,
-            cancellationToken);
+        _logger.LogInformation("POST /api/auth/reset-password recibido.");
 
-        return Ok(new
-        {
-            message = "Contraseña actualizada correctamente."
-        });
+        await _authService.ResetPasswordAsync(dto, cancellationToken);
+
+        return Ok(new { message = "Contraseña actualizada correctamente." });
     }
 }

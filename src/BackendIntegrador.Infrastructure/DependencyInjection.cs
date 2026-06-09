@@ -1,7 +1,10 @@
 using BackendIntegrador.Application.Abstractions;
 using BackendIntegrador.Application.Dtos;
+using BackendIntegrador.Application.Common;
 using BackendIntegrador.Infrastructure.Persistence;
 using BackendIntegrador.Infrastructure.Services;
+using BackendIntegrador.Infrastructure.Services.GemeloDigital;
+using BackendIntegrador.Infrastructure.Services.Seeding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,10 +16,33 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? "Data Source=integrador.db";
+            ?? throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' no está configurada. " +
+                "Defínala en appsettings, mediante ConnectionStrings__DefaultConnection o vincula la BD en Render (DATABASE_URL).");
+
+        PostgresConnectionStringResolver.Validate(connectionString);
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(connectionString));
+            options.UseNpgsql(connectionString));
+
+        var openMeteoSettings = new OpenMeteoSettings();
+        configuration.GetSection("OpenMeteoSettings").Bind(openMeteoSettings);
+        services.AddSingleton(openMeteoSettings);
+
+        var gemeloSettings = new GemeloDigitalSettings();
+        configuration.GetSection("GemeloDigitalSettings").Bind(gemeloSettings);
+        services.AddSingleton(gemeloSettings);
+
+        services.AddHttpClient<IClimateDataProvider, OpenMeteoClimateProvider>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(openMeteoSettings.TimeoutSeconds);
+        });
+
+        services.AddScoped<IMilkQualityPredictor, HeuristicMilkQualityPredictor>();
+        services.AddScoped<IAlertaGemeloEvaluator, AlertaGemeloEvaluator>();
+        services.AddScoped<IFincaGemeloAuthorizationService, FincaGemeloAuthorizationService>();
+        services.AddScoped<IFincaGemeloService, FincaGemeloService>();
+        services.AddScoped<ICentroAcopioGemeloService, CentroAcopioGemeloService>();
 
         services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
 
@@ -41,6 +67,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<DatabaseSeeder>();
 
         return services;
     }
