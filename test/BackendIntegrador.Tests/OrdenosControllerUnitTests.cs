@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BackendIntegrador.Api.Controllers;
 using BackendIntegrador.Application.Abstractions;
 using BackendIntegrador.Application.Dtos;
+using BackendIntegrador.Infrastructure.Persistence;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -20,7 +21,7 @@ namespace BackendIntegrador.Tests
         public OrdenosControllerUnitTests()
         {
             _mockSvc = new Mock<ICrudService<OrdenoDto, CreateOrdenoDto, UpdateOrdenoDto>>();
-            _controller = new OrdenosController(_mockSvc.Object);
+            _controller = new OrdenosController(_mockSvc.Object, null!);
         }
 
         [Fact]

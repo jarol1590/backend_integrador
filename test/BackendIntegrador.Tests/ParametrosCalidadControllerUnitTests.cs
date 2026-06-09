@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BackendIntegrador.Api.Controllers;
 using BackendIntegrador.Application.Abstractions;
 using BackendIntegrador.Application.Dtos;
+using BackendIntegrador.Infrastructure.Persistence;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -19,13 +20,13 @@ namespace BackendIntegrador.Tests
         public ParametrosCalidadControllerUnitTests()
         {
             _mockSvc = new Mock<ICrudService<ParametroCalidadDto, CreateParametroCalidadDto, UpdateParametroCalidadDto>>();
-            _controller = new ParametrosCalidadController(_mockSvc.Object);
+            _controller = new ParametrosCalidadController(_mockSvc.Object, null!);
         }
 
         [Fact]
         public async Task Create_ConflictOrBadRequest()
         {
-            var dto = new CreateParametroCalidadDto("Param", null, null, null);
+            var dto = new CreateParametroCalidadDto(null, "Param", null, null, null, null, 0);
             _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateParametroCalidadDto>(), It.IsAny<CancellationToken>())).ThrowsAsync(new System.InvalidOperationException("Existe"));
             var result = await _controller.Create(dto, CancellationToken.None);
             if (result.Result is BadRequestObjectResult) (result.Result as BadRequestObjectResult)!.Should().NotBeNull(); else { var obj = result.Result as ObjectResult; obj.Should().NotBeNull(); obj!.StatusCode.Should().Be(409); }
@@ -34,7 +35,7 @@ namespace BackendIntegrador.Tests
         [Fact]
         public async Task Create_InvalidData_ReturnsBadRequest()
         {
-            var dto = new CreateParametroCalidadDto("", null, 0m, 0m);
+            var dto = new CreateParametroCalidadDto(null, "", null, 0m, 0m, null, 0);
             _mockSvc.Setup(s => s.CreateAsync(It.IsAny<CreateParametroCalidadDto>(), It.IsAny<CancellationToken>())).ThrowsAsync(new System.InvalidOperationException("Datos inválidos"));
             var result = await _controller.Create(dto, CancellationToken.None);
             if (result.Result is BadRequestObjectResult) (result.Result as BadRequestObjectResult)!.Should().NotBeNull(); else { var obj = result.Result as ObjectResult; obj.Should().NotBeNull(); obj!.StatusCode.Should().Be(400); }
@@ -43,7 +44,7 @@ namespace BackendIntegrador.Tests
         [Fact]
         public async Task GetAll_ReturnsOk()
         {
-            var list = new List<ParametroCalidadDto>{ new ParametroCalidadDto(1, "Param", null, null, null) };
+            var list = new List<ParametroCalidadDto>{ new ParametroCalidadDto(1, null, "Param", null, null, null, null, 0) };
             _mockSvc.Setup(s => s.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
             var action = await _controller.GetAll(CancellationToken.None);
             var ok = action.Result as OkObjectResult; ok.Should().NotBeNull(); ok!.Value.Should().BeEquivalentTo(list);
@@ -52,7 +53,7 @@ namespace BackendIntegrador.Tests
         [Fact]
         public async Task GetById_ReturnsOk()
         {
-            var item = new ParametroCalidadDto(1, "Param", null, null, null);
+            var item = new ParametroCalidadDto(1, null, "Param", null, null, null, null, 0);
             _mockSvc.Setup(s => s.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(item);
             var action = await _controller.GetById(1, CancellationToken.None);
             var ok = action.Result as OkObjectResult; ok.Should().NotBeNull(); ok!.Value.Should().BeEquivalentTo(item);
@@ -61,7 +62,7 @@ namespace BackendIntegrador.Tests
         [Fact]
         public async Task Update_ReturnsOk()
         {
-            var dto = new UpdateParametroCalidadDto("Param", null, null, null);
+            var dto = new UpdateParametroCalidadDto("Param", null, null, null, null, 0);
             _mockSvc.Setup(s => s.UpdateAsync(1, It.IsAny<UpdateParametroCalidadDto>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
             var action = await _controller.Update(1, dto, CancellationToken.None);
             var ok = action as OkObjectResult; ok.Should().NotBeNull();
