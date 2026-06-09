@@ -3,6 +3,7 @@ using System;
 using BackendIntegrador.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BackendIntegrador.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609180000_FixTrabajadorIdAutoIncrement")]
+    partial class FixTrabajadorIdAutoIncrement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
@@ -23,8 +26,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("FechaHoraAnalisis")
-                        .IsRequired()
+                    b.Property<DateTime>("FechaHoraAnalisis")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("MuestraId")
@@ -37,7 +39,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasIndex("MuestraId");
 
-                    b.ToTable("AnalisisCalidad", (string)null);
+                    b.ToTable("AnalisisCalidad");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.CentroAcopio", b =>
@@ -49,11 +51,11 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Property<string>("Direccion")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Latitud")
+                    b.Property<decimal?>("Latitud")
                         .HasPrecision(18, 8)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Longitud")
+                    b.Property<decimal?>("Longitud")
                         .HasPrecision(18, 8)
                         .HasColumnType("TEXT");
 
@@ -69,7 +71,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasIndex("MunicipioId");
 
-                    b.ToTable("CentrosAcopio", (string)null);
+                    b.ToTable("CentrosAcopio");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Departamento", b =>
@@ -88,7 +90,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.HasIndex("Nombre")
                         .IsUnique();
 
-                    b.ToTable("Departamentos", (string)null);
+                    b.ToTable("Departamentos");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Finca", b =>
@@ -100,11 +102,11 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Property<string>("Direccion")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Latitud")
+                    b.Property<decimal?>("Latitud")
                         .HasPrecision(18, 8)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Longitud")
+                    b.Property<decimal?>("Longitud")
                         .HasPrecision(18, 8)
                         .HasColumnType("TEXT");
 
@@ -125,7 +127,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasIndex("ProductorId");
 
-                    b.ToTable("Fincas", (string)null);
+                    b.ToTable("Fincas");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Lote", b =>
@@ -143,8 +145,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Property<int?>("TransporteId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("VolumenCapturadoLitros")
-                        .IsRequired()
+                    b.Property<decimal>("VolumenCapturadoLitros")
                         .HasPrecision(18, 4)
                         .HasColumnType("TEXT");
 
@@ -156,7 +157,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasIndex("TransporteId");
 
-                    b.ToTable("Lotes", (string)null);
+                    b.ToTable("Lotes");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Muestra", b =>
@@ -165,8 +166,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("FechaHoraToma")
-                        .IsRequired()
+                    b.Property<DateTime>("FechaHoraToma")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("LoteId")
@@ -181,7 +181,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasIndex("TecnicoPorUsuarioId");
 
-                    b.ToTable("Muestras", (string)null);
+                    b.ToTable("Muestras");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Municipio", b =>
@@ -202,7 +202,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasIndex("DepartamentoId");
 
-                    b.ToTable("Municipios", (string)null);
+                    b.ToTable("Municipios");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Ordeno", b =>
@@ -211,18 +211,16 @@ namespace BackendIntegrador.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("FechaHoraFin")
+                    b.Property<DateTime?>("FechaHoraFin")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("FechaHoraInicio")
-                        .IsRequired()
+                    b.Property<DateTime>("FechaHoraInicio")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("FincaId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("VolumenLitros")
-                        .IsRequired()
+                    b.Property<decimal>("VolumenLitros")
                         .HasPrecision(18, 4)
                         .HasColumnType("TEXT");
 
@@ -230,7 +228,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasIndex("FincaId");
 
-                    b.ToTable("Ordenos", (string)null);
+                    b.ToTable("Ordenos");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.ParametroCalidad", b =>
@@ -257,11 +255,11 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Property<string>("Unidad")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ValorMaximo")
+                    b.Property<decimal?>("ValorMaximo")
                         .HasPrecision(18, 6)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ValorMinimo")
+                    b.Property<decimal?>("ValorMinimo")
                         .HasPrecision(18, 6)
                         .HasColumnType("TEXT");
 
@@ -270,7 +268,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.HasIndex("CentroAcopioId", "Nombre")
                         .IsUnique();
 
-                    b.ToTable("ParametrosCalidad", (string)null);
+                    b.ToTable("ParametrosCalidad");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Productor", b =>
@@ -308,7 +306,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.HasIndex("UsuarioId")
                         .IsUnique();
 
-                    b.ToTable("Productores", (string)null);
+                    b.ToTable("Productores");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.RecepcionAcopio", b =>
@@ -320,8 +318,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Property<int>("CentroAcopioId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("FechaHoraEntrada")
-                        .IsRequired()
+                    b.Property<DateTime>("FechaHoraEntrada")
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("TemperaturaRecepcion")
@@ -333,8 +330,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("VolumenLitrosRecibidos")
-                        .IsRequired()
+                    b.Property<decimal>("VolumenLitrosRecibidos")
                         .HasPrecision(18, 4)
                         .HasColumnType("TEXT");
 
@@ -346,7 +342,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("RecepcionesAcopio", (string)null);
+                    b.ToTable("RecepcionesAcopio");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.ResultadoParametro", b =>
@@ -360,8 +356,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Property<string>("Observacion")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ValorResultado")
-                        .IsRequired()
+                    b.Property<decimal>("ValorResultado")
                         .HasPrecision(18, 6)
                         .HasColumnType("TEXT");
 
@@ -369,7 +364,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasIndex("ParametroId");
 
-                    b.ToTable("ResultadosParametro", (string)null);
+                    b.ToTable("ResultadosParametro");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Rol", b =>
@@ -391,7 +386,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.HasIndex("Nombre")
                         .IsUnique();
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.TipoDocumento", b =>
@@ -413,7 +408,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.HasIndex("Nombre")
                         .IsUnique();
 
-                    b.ToTable("TiposDocumento", (string)null);
+                    b.ToTable("TiposDocumento");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Trabajador", b =>
@@ -451,7 +446,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.HasIndex("UsuarioId")
                         .IsUnique();
 
-                    b.ToTable("Trabajadores", (string)null);
+                    b.ToTable("Trabajadores");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Transporte", b =>
@@ -460,11 +455,10 @@ namespace BackendIntegrador.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("FechaHoraEntrada")
+                    b.Property<DateTime?>("FechaHoraEntrada")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("FechaHoraSalida")
-                        .IsRequired()
+                    b.Property<DateTime>("FechaHoraSalida")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PlacaVehiculo")
@@ -477,7 +471,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasKey("TransporteId");
 
-                    b.ToTable("Transportes", (string)null);
+                    b.ToTable("Transportes");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Usuario", b =>
@@ -499,8 +493,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("FechaCreacion")
-                        .IsRequired()
+                    b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
@@ -515,7 +508,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.UsuarioRol", b =>
@@ -530,7 +523,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
 
                     b.HasIndex("RolId");
 
-                    b.ToTable("UsuarioRoles", (string)null);
+                    b.ToTable("UsuarioRoles");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.AnalisisCalidad", b =>
