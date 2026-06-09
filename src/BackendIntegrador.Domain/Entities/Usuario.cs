@@ -12,6 +12,7 @@ public class Usuario
     public CentroAcopio? CentroAcopio { get; set; }
     public ICollection<UsuarioRol> UsuarioRoles { get; set; } = new List<UsuarioRol>();
     public Productor? Productor { get; set; }
+    public Trabajador? Trabajador { get; set; }
     public ICollection<RecepcionAcopio> RecepcionesRegistradas { get; set; } = new List<RecepcionAcopio>();
     public ICollection<Muestra> MuestrasComoTecnico { get; set; } = new List<Muestra>();
 }

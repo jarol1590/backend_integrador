@@ -46,7 +46,7 @@ internal sealed class AuthenticationService : IAuthenticationService
             .FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
 
         if (usuario is null)
-            throw new InvalidOperationException("Credenciales inválidas.");
+            throw new InvalidOperationException("Usuario no registrado, no puedes iniciar sesión.");
 
         if (string.IsNullOrWhiteSpace(usuario.PasswordHash))
             throw new InvalidOperationException("El usuario no tiene una contraseña válida configurada.");
@@ -62,10 +62,10 @@ internal sealed class AuthenticationService : IAuthenticationService
         }
 
         if (!passwordValid)
-            throw new InvalidOperationException("Credenciales inválidas.");
+            throw new InvalidOperationException("Contraseña incorrecta.");
 
         if (usuario.Estado != "activo")
-            throw new InvalidOperationException("El usuario no está activo.");
+            throw new InvalidOperationException("Usuario inactivo, no puedes iniciar sesión.");
 
         var rol = usuario.UsuarioRoles.Select(ur => ur.Rol).FirstOrDefault();
         var rolNombre = rol?.Nombre ?? "Sin rol";
@@ -81,7 +81,8 @@ internal sealed class AuthenticationService : IAuthenticationService
                 usuario.Estado,
                 usuario.FechaCreacion,
                 tipoUsuario,
-                rolNombre));
+                rolNombre,
+                usuario.CentroAcopioId));
     }
 
     private string GenerateJwtToken(Domain.Entities.Usuario usuario, string rolNombre)

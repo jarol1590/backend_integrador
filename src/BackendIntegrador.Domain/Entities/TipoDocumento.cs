@@ -7,4 +7,5 @@ public class TipoDocumento
     public string? Descripcion { get; set; }
 
     public ICollection<Productor> Productores { get; set; } = new List<Productor>();
+    public ICollection<Trabajador> Trabajadores { get; set; } = new List<Trabajador>();
 }

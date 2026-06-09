@@ -14,10 +14,15 @@ public static class UsuarioRoleValidator
         return tipo;
     }
 
-    public static string ValidateProvision(Rol rol, int? centroAcopioId, ProductorProvisionDto? productor)
+    public static string ValidateProvision(
+        Rol rol,
+        int? centroAcopioId,
+        ProductorProvisionDto? productor,
+        CentroAcopioProvisionDto? centroAcopioProvision = null,
+        TrabajadorProvisionDto? trabajadorProvision = null)
     {
         var tipo = ResolveAndValidateRol(rol);
-        ValidateStructuralRules(tipo, centroAcopioId, productor);
+        ValidateStructuralRules(tipo, centroAcopioId, productor, centroAcopioProvision, trabajadorProvision);
         return tipo;
     }
 
@@ -40,7 +45,9 @@ public static class UsuarioRoleValidator
     private static void ValidateStructuralRules(
         string tipo,
         int? centroAcopioId,
-        ProductorProvisionDto? productor)
+        ProductorProvisionDto? productor,
+        CentroAcopioProvisionDto? centroAcopioProvision = null,
+        TrabajadorProvisionDto? trabajadorProvision = null)
     {
         switch (tipo)
         {
@@ -52,11 +59,19 @@ public static class UsuarioRoleValidator
                 break;
 
             case UsuarioRoleTypes.CentroAcopio:
+                if (!centroAcopioId.HasValue && centroAcopioProvision is null)
+                    throw new InvalidOperationException("Debe indicar el Centro de Acopio de trabajo.");
+                if (productor is not null)
+                    throw new InvalidOperationException("Este rol no puede tener datos de productor ni fincas.");
+                break;
+
             case UsuarioRoleTypes.TrabajadorCentroAcopio:
                 if (!centroAcopioId.HasValue)
                     throw new InvalidOperationException("Debe indicar el Centro de Acopio de trabajo.");
                 if (productor is not null)
                     throw new InvalidOperationException("Este rol no puede tener datos de productor ni fincas.");
+                if (trabajadorProvision is null)
+                    throw new InvalidOperationException("Los trabajadores requieren datos personales.");
                 break;
 
             case UsuarioRoleTypes.Productor:

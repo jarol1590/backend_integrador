@@ -169,7 +169,7 @@ internal sealed class LoteCrudService : IntKeyCrudServiceBase<Lote, LoteDto, Cre
 {
     public LoteCrudService(IRepository<Lote> repo) : base(repo) { }
     protected override int GetId(Lote e) => e.LoteId;
-    protected override LoteDto MapRead(Lote e) => new(e.LoteId, e.OrdenoId, e.CentroAcopioId, e.VolumenCapturadoLitros, e.TransporteId);
+    protected override LoteDto MapRead(Lote e) => new(e.LoteId, e.OrdenoId, e.CentroAcopioId, e.VolumenCapturadoLitros, e.TransporteId, e.Transporte?.FechaHoraEntrada);
     protected override Lote MapCreate(CreateLoteDto d) => new()
     {
         OrdenoId = d.OrdenoId,
@@ -253,13 +253,16 @@ internal sealed class ParametroCalidadCrudService : IntKeyCrudServiceBase<Parame
 {
     public ParametroCalidadCrudService(IRepository<ParametroCalidad> repo) : base(repo) { }
     protected override int GetId(ParametroCalidad e) => e.ParametroId;
-    protected override ParametroCalidadDto MapRead(ParametroCalidad e) => new(e.ParametroId, e.Nombre, e.Unidad, e.ValorMinimo, e.ValorMaximo);
+    protected override ParametroCalidadDto MapRead(ParametroCalidad e) => new(e.ParametroId, e.CentroAcopioId, e.Nombre, e.Unidad, e.ValorMinimo, e.ValorMaximo, e.Descripcion, e.Orden);
     protected override ParametroCalidad MapCreate(CreateParametroCalidadDto d) => new()
     {
+        CentroAcopioId = d.CentroAcopioId,
         Nombre = d.Nombre,
         Unidad = d.Unidad,
         ValorMinimo = d.ValorMinimo,
         ValorMaximo = d.ValorMaximo,
+        Descripcion = d.Descripcion,
+        Orden = d.Orden,
     };
     protected override void ApplyUpdate(ParametroCalidad e, UpdateParametroCalidadDto d)
     {
@@ -267,5 +270,7 @@ internal sealed class ParametroCalidadCrudService : IntKeyCrudServiceBase<Parame
         e.Unidad = d.Unidad;
         e.ValorMinimo = d.ValorMinimo;
         e.ValorMaximo = d.ValorMaximo;
+        e.Descripcion = d.Descripcion;
+        e.Orden = d.Orden;
     }
 }

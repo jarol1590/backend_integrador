@@ -87,13 +87,28 @@ public record ProductorProvisionDto(
     int TipoDocumentoId,
     FincaInicialDto? FincaInicial);
 
+public record CentroAcopioProvisionDto(
+    string Nombre,
+    string? Direccion,
+    decimal? Latitud,
+    decimal? Longitud,
+    int MunicipioId);
+
+public record TrabajadorProvisionDto(
+    string Nombre,
+    string Documento,
+    string? Telefono,
+    int TipoDocumentoId);
+
 public record ProvisionarUsuarioDto(
     string Email,
     string Password,
     string Estado,
     int RolId,
     int? CentroAcopioId,
-    ProductorProvisionDto? Productor);
+    ProductorProvisionDto? Productor,
+    CentroAcopioProvisionDto? CentroAcopio = null,
+    TrabajadorProvisionDto? Trabajador = null);
 
 public record ActualizarUsuarioDto(
     string Email,
@@ -101,7 +116,9 @@ public record ActualizarUsuarioDto(
     int RolId,
     int? CentroAcopioId,
     string? Password,
-    ProductorProvisionDto? Productor);
+    ProductorProvisionDto? Productor,
+    CentroAcopioProvisionDto? CentroAcopio = null,
+    TrabajadorProvisionDto? Trabajador = null);
 
 public record AuthUsuarioDto(
     int UsuarioId,
@@ -109,4 +126,5 @@ public record AuthUsuarioDto(
     string Estado,
     DateTime FechaCreacion,
     string TipoUsuario,
-    string RolNombre);
+    string RolNombre,
+    int? CentroAcopioId = null);

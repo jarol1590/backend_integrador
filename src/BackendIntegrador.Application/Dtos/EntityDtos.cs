@@ -50,15 +50,16 @@ public record TransporteDto(int TransporteId, string PlacaVehiculo, DateTime Fec
 public record CreateTransporteDto(string PlacaVehiculo, DateTime FechaHoraSalida, DateTime? FechaHoraEntrada, int? TemperaturaInicio);
 public record UpdateTransporteDto(string PlacaVehiculo, DateTime FechaHoraSalida, DateTime? FechaHoraEntrada, int? TemperaturaInicio);
 
-public record LoteDto(int LoteId, int OrdenoId, int CentroAcopioId, decimal VolumenCapturadoLitros, int? TransporteId);
-public record CreateLoteDto(int OrdenoId, int CentroAcopioId, decimal VolumenCapturadoLitros, int? TransporteId);
-public record UpdateLoteDto(int OrdenoId, int CentroAcopioId, decimal VolumenCapturadoLitros, int? TransporteId);
+public record LoteDto(int LoteId, int OrdenoId, int? CentroAcopioId, decimal VolumenCapturadoLitros, int? TransporteId, DateTime? TransporteFechaHoraEntrada);
+public record CreateLoteDto(int OrdenoId, int? CentroAcopioId, decimal VolumenCapturadoLitros, int? TransporteId);
+public record UpdateLoteDto(int OrdenoId, int? CentroAcopioId, decimal VolumenCapturadoLitros, int? TransporteId);
 
 public record RecepcionAcopioDto(int RecepcionId, int TransporteId, int CentroAcopioId, DateTime FechaHoraEntrada, int UsuarioId, int? TemperaturaRecepcion, decimal VolumenLitrosRecibidos);
 public record CreateRecepcionAcopioDto(int TransporteId, int CentroAcopioId, DateTime FechaHoraEntrada, int UsuarioId, int? TemperaturaRecepcion, decimal VolumenLitrosRecibidos);
 public record UpdateRecepcionAcopioDto(int TransporteId, int CentroAcopioId, DateTime FechaHoraEntrada, int UsuarioId, int? TemperaturaRecepcion, decimal VolumenLitrosRecibidos);
 
 public record MuestraDto(int MuestraId, int LoteId, int TecnicoPorUsuarioId, DateTime FechaHoraToma);
+public record MuestraConEstadoDto(int MuestraId, int LoteId, int TecnicoPorUsuarioId, DateTime FechaHoraToma, bool TieneAnalisis);
 public record CreateMuestraDto(int LoteId, int TecnicoPorUsuarioId, DateTime FechaHoraToma);
 public record UpdateMuestraDto(int LoteId, int TecnicoPorUsuarioId, DateTime FechaHoraToma);
 
@@ -66,10 +67,25 @@ public record AnalisisCalidadDto(int AnalisisId, int MuestraId, DateTime FechaHo
 public record CreateAnalisisCalidadDto(int MuestraId, DateTime FechaHoraAnalisis, string? Observaciones);
 public record UpdateAnalisisCalidadDto(int MuestraId, DateTime FechaHoraAnalisis, string? Observaciones);
 
-public record ParametroCalidadDto(int ParametroId, string Nombre, string? Unidad, decimal? ValorMinimo, decimal? ValorMaximo);
-public record CreateParametroCalidadDto(string Nombre, string? Unidad, decimal? ValorMinimo, decimal? ValorMaximo);
-public record UpdateParametroCalidadDto(string Nombre, string? Unidad, decimal? ValorMinimo, decimal? ValorMaximo);
+public record ParametroCalidadDto(int ParametroId, int? CentroAcopioId, string Nombre, string? Unidad, decimal? ValorMinimo, decimal? ValorMaximo, string? Descripcion, int Orden);
+public record CreateParametroCalidadDto(int? CentroAcopioId, string Nombre, string? Unidad, decimal? ValorMinimo, decimal? ValorMaximo, string? Descripcion, int Orden);
+public record UpdateParametroCalidadDto(string Nombre, string? Unidad, decimal? ValorMinimo, decimal? ValorMaximo, string? Descripcion, int Orden);
 
 public record ResultadoParametroDto(int AnalisisId, int ParametroId, decimal ValorResultado, string? Observacion);
 public record CreateResultadoParametroDto(int AnalisisId, int ParametroId, decimal ValorResultado, string? Observacion);
 public record UpdateResultadoParametroDto(decimal ValorResultado, string? Observacion);
+
+public record ResultadoVisualDto(
+    string ParametroNombre,
+    string? Unidad,
+    double ValorResultado,
+    double? ValorMinimo,
+    double? ValorMaximo,
+    bool DentroDeRango);
+
+public record AnalisisPorFincaDto(
+    int AnalisisId,
+    int LoteId,
+    string FincaNombre,
+    DateTime FechaAnalisis,
+    IReadOnlyList<ResultadoVisualDto> Resultados);

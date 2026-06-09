@@ -3,6 +3,7 @@ using System;
 using BackendIntegrador.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BackendIntegrador.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260608205618_AddCentroAcopioToParametroCalidad")]
+    partial class AddCentroAcopioToParametroCalidad
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
@@ -133,7 +136,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("CentroAcopioId")
+                    b.Property<int>("CentroAcopioId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrdenoId")
@@ -408,44 +411,6 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.ToTable("TiposDocumento");
                 });
 
-            modelBuilder.Entity("BackendIntegrador.Domain.Entities.Trabajador", b =>
-                {
-                    b.Property<int>("TrabajadorId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Documento")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Telefono")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TipoDocumentoId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("TrabajadorId");
-
-                    b.HasIndex("Documento")
-                        .IsUnique();
-
-                    b.HasIndex("TipoDocumentoId");
-
-                    b.HasIndex("UsuarioId")
-                        .IsUnique();
-
-                    b.ToTable("Trabajadores");
-                });
-
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Transporte", b =>
                 {
                     b.Property<int>("TransporteId")
@@ -569,7 +534,8 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.HasOne("BackendIntegrador.Domain.Entities.CentroAcopio", "CentroAcopio")
                         .WithMany("Lotes")
                         .HasForeignKey("CentroAcopioId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("BackendIntegrador.Domain.Entities.Ordeno", "Ordeno")
                         .WithMany("Lotes")
@@ -705,25 +671,6 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Navigation("Parametro");
                 });
 
-            modelBuilder.Entity("BackendIntegrador.Domain.Entities.Trabajador", b =>
-                {
-                    b.HasOne("BackendIntegrador.Domain.Entities.TipoDocumento", "TipoDocumento")
-                        .WithMany("Trabajadores")
-                        .HasForeignKey("TipoDocumentoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BackendIntegrador.Domain.Entities.Usuario", "Usuario")
-                        .WithOne("Trabajador")
-                        .HasForeignKey("BackendIntegrador.Domain.Entities.Trabajador", "UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("TipoDocumento");
-
-                    b.Navigation("Usuario");
-                });
-
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Usuario", b =>
                 {
                     b.HasOne("BackendIntegrador.Domain.Entities.CentroAcopio", "CentroAcopio")
@@ -817,8 +764,6 @@ namespace BackendIntegrador.Infrastructure.Migrations
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.TipoDocumento", b =>
                 {
                     b.Navigation("Productores");
-
-                    b.Navigation("Trabajadores");
                 });
 
             modelBuilder.Entity("BackendIntegrador.Domain.Entities.Transporte", b =>
@@ -835,8 +780,6 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.Navigation("Productor");
 
                     b.Navigation("RecepcionesRegistradas");
-
-                    b.Navigation("Trabajador");
 
                     b.Navigation("UsuarioRoles");
                 });

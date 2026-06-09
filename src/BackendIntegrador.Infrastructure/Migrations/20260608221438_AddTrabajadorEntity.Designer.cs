@@ -3,6 +3,7 @@ using System;
 using BackendIntegrador.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BackendIntegrador.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260608221438_AddTrabajadorEntity")]
+    partial class AddTrabajadorEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
@@ -133,7 +136,7 @@ namespace BackendIntegrador.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("CentroAcopioId")
+                    b.Property<int>("CentroAcopioId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrdenoId")
@@ -569,7 +572,8 @@ namespace BackendIntegrador.Infrastructure.Migrations
                     b.HasOne("BackendIntegrador.Domain.Entities.CentroAcopio", "CentroAcopio")
                         .WithMany("Lotes")
                         .HasForeignKey("CentroAcopioId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("BackendIntegrador.Domain.Entities.Ordeno", "Ordeno")
                         .WithMany("Lotes")

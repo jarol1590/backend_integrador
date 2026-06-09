@@ -17,6 +17,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<CentroAcopio> CentrosAcopio => Set<CentroAcopio>();
     public DbSet<TipoDocumento> TiposDocumento => Set<TipoDocumento>();
     public DbSet<Productor> Productores => Set<Productor>();
+    public DbSet<Trabajador> Trabajadores => Set<Trabajador>();
     public DbSet<Finca> Fincas => Set<Finca>();
     public DbSet<Ordeno> Ordenos => Set<Ordeno>();
     public DbSet<Transporte> Transportes => Set<Transporte>();
@@ -95,6 +96,16 @@ public sealed class AppDbContext : DbContext
             e.HasOne(p => p.TipoDocumento).WithMany(t => t.Productores).HasForeignKey(p => p.TipoDocumentoId);
         });
 
+        modelBuilder.Entity<Trabajador>(e =>
+        {
+            e.HasIndex(t => t.Documento).IsUnique();
+            e.HasIndex(t => t.UsuarioId).IsUnique();
+            e.Property(t => t.Nombre).HasMaxLength(256);
+            e.Property(t => t.Documento).HasMaxLength(64);
+            e.HasOne(t => t.Usuario).WithOne(u => u.Trabajador).HasForeignKey<Trabajador>(t => t.UsuarioId);
+            e.HasOne(t => t.TipoDocumento).WithMany(td => td.Trabajadores).HasForeignKey(t => t.TipoDocumentoId);
+        });
+
         modelBuilder.Entity<Finca>(e =>
         {
             e.Property(f => f.Nombre).HasMaxLength(256);
@@ -120,7 +131,7 @@ public sealed class AppDbContext : DbContext
         {
             e.Property(l => l.VolumenCapturadoLitros).HasPrecision(18, 4);
             e.HasOne(l => l.Ordeno).WithMany(o => o.Lotes).HasForeignKey(l => l.OrdenoId);
-            e.HasOne(l => l.CentroAcopio).WithMany(c => c.Lotes).HasForeignKey(l => l.CentroAcopioId);
+            e.HasOne(l => l.CentroAcopio).WithMany(c => c.Lotes).HasForeignKey(l => l.CentroAcopioId).IsRequired(false);
         });
 
         modelBuilder.Entity<RecepcionAcopio>(e =>
@@ -144,10 +155,12 @@ public sealed class AppDbContext : DbContext
 
         modelBuilder.Entity<ParametroCalidad>(e =>
         {
-            e.HasIndex(p => p.Nombre).IsUnique();
+            e.HasIndex(p => new { p.CentroAcopioId, p.Nombre }).IsUnique();
             e.Property(p => p.Nombre).HasMaxLength(128);
             e.Property(p => p.ValorMinimo).HasPrecision(18, 6);
             e.Property(p => p.ValorMaximo).HasPrecision(18, 6);
+            e.Property(p => p.Descripcion).HasMaxLength(512);
+            e.HasOne(p => p.CentroAcopio).WithMany().HasForeignKey(p => p.CentroAcopioId).IsRequired(false);
         });
 
         foreach (var fk in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))

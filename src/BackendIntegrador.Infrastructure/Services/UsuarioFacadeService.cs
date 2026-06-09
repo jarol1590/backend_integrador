@@ -151,13 +151,52 @@ internal sealed class UsuarioFacadeService : IUsuarioFacadeService
             }
         }
 
+        CentroAcopioProvisionDto? centroAcopioProvisionDto = null;
+
+        if (requiereCentro && data.CentroAcopioId.HasValue)
+        {
+            var centro = await _db.CentrosAcopio
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.CentroAcopioId == data.CentroAcopioId, cancellationToken);
+
+            if (centro is not null)
+            {
+                centroAcopioProvisionDto = new CentroAcopioProvisionDto(
+                    centro.Nombre,
+                    centro.Direccion,
+                    centro.Latitud,
+                    centro.Longitud,
+                    centro.MunicipioId);
+            }
+        }
+
+        TrabajadorProvisionDto? trabajadorDto = null;
+
+        if (tipo == UsuarioRoleTypes.TrabajadorCentroAcopio)
+        {
+            var trabajador = await _db.Trabajadores
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.UsuarioId == usuarioId, cancellationToken);
+
+            if (trabajador is not null)
+            {
+                trabajadorDto = new TrabajadorProvisionDto(
+                    trabajador.Nombre,
+                    trabajador.Documento,
+                    trabajador.Telefono,
+                    trabajador.TipoDocumentoId);
+            }
+        }
+
         return new ProvisionarUsuarioDto(
             data.Email,
             string.Empty,
             data.Estado,
             data.RolId,
             centroAcopioId,
-            productorDto);
+            productorDto,
+            centroAcopioProvisionDto,
+            trabajadorDto);
     }
 
     public async Task<UsuarioPerfilBaseDto> ProvisionarAsync(ProvisionarUsuarioDto dto, CancellationToken cancellationToken = default)
@@ -173,14 +212,33 @@ internal sealed class UsuarioFacadeService : IUsuarioFacadeService
         if (rol is null)
             throw new InvalidOperationException("El rol indicado no existe.");
 
-        var tipo = UsuarioRoleValidator.ValidateProvision(rol, dto.CentroAcopioId, dto.Productor);
+        var tipo = UsuarioRoleValidator.ValidateProvision(rol, dto.CentroAcopioId, dto.Productor, dto.CentroAcopio, dto.Trabajador);
         await ValidateCentroAcopioExistsAsync(dto.CentroAcopioId, cancellationToken);
         await ValidateProductorDocumentAsync(dto.Productor, null, cancellationToken);
 
         await using var tx = await _db.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            var centroAcopioId = UsuarioRoleTypes.IsProductor(tipo) ? null : dto.CentroAcopioId;
+            int? centroAcopioId = null;
+
+            if (dto.CentroAcopio is not null)
+            {
+                var nuevoCentro = new CentroAcopio
+                {
+                    Nombre = dto.CentroAcopio.Nombre,
+                    Direccion = dto.CentroAcopio.Direccion,
+                    Latitud = dto.CentroAcopio.Latitud,
+                    Longitud = dto.CentroAcopio.Longitud,
+                    MunicipioId = dto.CentroAcopio.MunicipioId,
+                };
+                _db.CentrosAcopio.Add(nuevoCentro);
+                await _db.SaveChangesAsync(cancellationToken);
+                centroAcopioId = nuevoCentro.CentroAcopioId;
+            }
+            else if (!UsuarioRoleTypes.IsProductor(tipo))
+            {
+                centroAcopioId = dto.CentroAcopioId;
+            }
 
             var usuario = new Usuario
             {
@@ -220,6 +278,18 @@ internal sealed class UsuarioFacadeService : IUsuarioFacadeService
                         ProductorId = productor.ProductorId
                     });
                 }
+            }
+
+            if (dto.Trabajador is not null)
+            {
+                _db.Trabajadores.Add(new Trabajador
+                {
+                    Nombre = dto.Trabajador.Nombre,
+                    Documento = dto.Trabajador.Documento,
+                    Telefono = dto.Trabajador.Telefono,
+                    UsuarioId = usuario.UsuarioId,
+                    TipoDocumentoId = dto.Trabajador.TipoDocumentoId
+                });
             }
 
             await _db.SaveChangesAsync(cancellationToken);
