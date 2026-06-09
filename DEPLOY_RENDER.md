@@ -63,6 +63,18 @@ Host=dpg-xxxx-a.oregon-postgres.render.com;Port=5432;Database=integrador_lacteos
 
 Sustituye host, usuario, contraseña y base según tu panel de Render.
 
+**Cada parámetro necesita su keyword explícita.** Error frecuente: pegar la contraseña sin `Password=`:
+
+```text
+# Incorrecto — provoca KeyNotFoundException al arrancar
+...;Username=integrador_lacteos_user;TU_PASSWORD_AQUI;SSL Mode=Require;...
+
+# Correcto
+...;Username=integrador_lacteos_user;Password=TU_PASSWORD_AQUI;SSL Mode=Require;...
+```
+
+No pegues la URL `postgresql://...` directamente en `ConnectionStrings__DefaultConnection`; conviértela al formato anterior o vincula la BD en Render (ver `DATABASE_URL` más abajo).
+
 ### 4. Esquema de base de datos
 
 La API aplica migraciones automáticamente al iniciar (`Database.Migrate()` en `Program.cs`). No necesitas ejecutar `dotnet ef database update` manualmente en Render si el servicio arranca correctamente.
@@ -138,7 +150,8 @@ En el Web Service → **Environment** → **Add Environment Variable**:
 | Variable | Ejemplo / descripción |
 |----------|----------------------|
 | `ASPNETCORE_ENVIRONMENT` | `Production` |
-| `ConnectionStrings__DefaultConnection` | Cadena Npgsql con SSL (ver sección BD). Usa **Internal URL** desglosada si la API y la BD están en Render. |
+| `ConnectionStrings__DefaultConnection` | Cadena Npgsql con SSL (ver sección BD). Usa **Internal URL** desglosada si la API y la BD están en Render. Incluye siempre `Password=`. |
+| `DATABASE_URL` | *(Alternativa)* Si vinculas la BD al Web Service en Render, la API puede leer esta variable automáticamente **solo si** no defines `ConnectionStrings__DefaultConnection`. |
 | `JwtSettings__SecretKey` | Clave segura de **mínimo 32 caracteres** (genera una única para producción) |
 | `JwtSettings__Issuer` | `BackendIntegrador` |
 | `JwtSettings__Audience` | `BackendIntegradorClients` |
@@ -164,6 +177,28 @@ SeedData__Enabled=false
 ```
 
 **Importante:** No subas contraseñas al repositorio. Configúralas solo en el panel de Render o en `.env` local (gitignored).
+
+### Corregir connection string en Render (acción manual)
+
+Si el deploy falla con `KeyNotFoundException` en `NpgsqlConnectionStringBuilder`:
+
+1. Render Dashboard → **Web Service** → **Environment**
+2. Edita `ConnectionStrings__DefaultConnection` y verifica que incluya `Password=` antes de la contraseña
+3. Ejemplo con Internal URL (sustituye `TU_PASSWORD` por el valor de Render → PostgreSQL → Connections):
+
+```text
+Host=dpg-d8jl3cs2m8qs7397e520-a;Port=5432;Database=integrador_lacteos;Username=integrador_lacteos_user;Password=TU_PASSWORD;SSL Mode=Require;Trust Server Certificate=true
+```
+
+4. **Manual Deploy** → **Deploy latest commit** y revisa los logs
+
+### Rotar contraseña de PostgreSQL
+
+Si una contraseña quedó expuesta (chat, commit, captura), rótala:
+
+1. Render → **PostgreSQL** → **Reset password**
+2. Actualiza `ConnectionStrings__DefaultConnection` en el Web Service con la nueva contraseña
+3. Si usas Docker local contra Render, actualiza también `.env`
 
 ---
 
@@ -263,6 +298,7 @@ Con el token en el header `Authorization: Bearer {token}`:
 
 | Síntoma | Causa probable | Qué hacer |
 |---------|----------------|-----------|
+| `KeyNotFoundException` en `NpgsqlConnectionStringBuilder` al arrancar | Falta `Password=` en la cadena, o se pegó la URI `postgresql://` sin convertir | Usa formato Npgsql con `Password=` explícito (ver sección BD). La API valida la cadena al inicio y muestra un mensaje más claro |
 | `Failed to connect to ...:5432` | Host/puerto incorrectos o SSL faltante | Revisa `ConnectionStrings__DefaultConnection`; añade `SSL Mode=Require;Trust Server Certificate=true` |
 | `password authentication failed` | Usuario/contraseña incorrectos | Copia de nuevo desde Render → PostgreSQL → Connections |
 | `database "..." does not exist` | Nombre de BD incorrecto | Verifica `Database=` en la cadena (ej. `integrador_lacteos`) |

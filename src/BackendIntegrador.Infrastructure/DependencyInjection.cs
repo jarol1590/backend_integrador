@@ -18,7 +18,9 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException(
                 "Connection string 'DefaultConnection' no está configurada. " +
-                "Defínala en appsettings o mediante ConnectionStrings__DefaultConnection.");
+                "Defínala en appsettings, mediante ConnectionStrings__DefaultConnection o vincula la BD en Render (DATABASE_URL).");
+
+        PostgresConnectionStringResolver.Validate(connectionString);
 
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));

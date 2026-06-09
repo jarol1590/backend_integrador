@@ -19,6 +19,8 @@ builder.Configuration.AddJsonFile(
     optional: true,
     reloadOnChange: true);
 
+PostgresConnectionStringResolver.ApplyDatabaseUrlFallback(builder.Configuration);
+
 // Cargar configuración JWT
 var jwtSettings = new JwtSettings();
 builder.Configuration.GetSection("JwtSettings").Bind(jwtSettings);
