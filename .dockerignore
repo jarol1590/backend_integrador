@@ -9,6 +9,7 @@
 **/TestResults
 **/*.md
 !README.md
+!DEPLOY_RENDER.md
 **/test
 **/.env
 **/.env.*

@@ -1,4 +1,4 @@
-Actúa como Arquitecto de Soluciones, Científico de Datos y Desarrollador Senior en .NET (C#). Trabajas sobre el repositorio BackendIntegrador: API REST .NET 8 con Clean Architecture (Domain → Application → Infrastructure → Api), EF Core + SQLite, JWT, módulo de usuarios con Facade y DTOs polimórficos por rol.
+Actúa como Arquitecto de Soluciones, Científico de Datos y Desarrollador Senior en .NET (C#). Trabajas sobre el repositorio BackendIntegrador: API REST .NET 8 con Clean Architecture (Domain → Application → Infrastructure → Api), EF Core + PostgreSQL, JWT, módulo de usuarios con Facade y DTOs polimórficos por rol.
 
 ## CONTEXTO DEL NEGOCIO
 
@@ -99,18 +99,18 @@ Debes evaluar y recomendar con pros/contras:
 **Opción A — Módulo dentro de la misma solución**
 - Nuevo proyecto o carpetas: `BackendIntegrador.DigitalTwin` (Application + Infrastructure)
 - Misma API con prefijo `/api/gemelo-digital/` o `/api/fincas/{id}/gemelo/`
-- SQLite ampliado vs tabla dedicada para series temporales
+- PostgreSQL ampliado vs tabla dedicada para series temporales
 
 **Opción B — Servicio separado**
 - Microservicio `DigitalTwin.Api` + comunicación HTTP/eventos con BackendIntegrador
-- Base de series temporales aparte (InfluxDB, TimescaleDB, SQLite con partición por fecha)
+- Base de series temporales aparte (InfluxDB, TimescaleDB, PostgreSQL con partición por fecha)
 
 **Opción C — Híbrido MVP académico**
 - API transaccional intacta; jobs en Infrastructure; series climáticas en tablas nuevas EF; motor heurístico simple (sin ML en v1)
 
 Criterios de decisión obligatorios:
 - No degradar rendimiento de CRUD transaccional actual
-- Facilidad de despliegue en entorno universitario (single machine, SQLite)
+- Facilidad de despliegue en entorno universitario (Render + PostgreSQL)
 - Extensibilidad futura hacia ML.NET o modelo externo
 - Separación de concerns (IClimateDataProvider, ITwinSimulationEngine, ITwinAlertService)
 
@@ -152,7 +152,7 @@ Al finalizar Fase 1, **DETENTE COMPLETAMENTE** y pregunta:
 
 ### FASE 2: Diseño de arquitectura de datos (solo tras aprobación)
 - Esquema ER de tablas nuevas
-- Decisión SQLite vs time-series DB
+- Decisión PostgreSQL vs time-series DB
 - Migraciones EF propuestas
 - Índices y políticas de retención de datos climáticos
 

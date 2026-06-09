@@ -16,10 +16,12 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? "Data Source=integrador.db";
+            ?? throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' no está configurada. " +
+                "Defínala en appsettings o mediante ConnectionStrings__DefaultConnection.");
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(connectionString));
+            options.UseNpgsql(connectionString));
 
         var openMeteoSettings = new OpenMeteoSettings();
         configuration.GetSection("OpenMeteoSettings").Bind(openMeteoSettings);

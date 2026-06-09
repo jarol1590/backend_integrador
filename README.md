@@ -20,7 +20,8 @@ API REST en **.NET 8** para el portal **Control Lácteo**: trazabilidad del proc
 12. [Persistencia y migraciones](#persistencia-y-migraciones)
 13. [Pruebas](#pruebas)
 14. [Ejecución local](#ejecución-local)
-15. [Stack tecnológico](#stack-tecnológico)
+15. [Despliegue en Render](#despliegue-en-render)
+16. [Stack tecnológico](#stack-tecnológico)
 
 ---
 
@@ -42,7 +43,7 @@ Principios de diseño:
 - **Clean Architecture** con dependencias hacia el dominio.
 - **API orientada al frontend** en usuarios (patrón Facade, DTOs polimórficos).
 - **CRUD genérico** para entidades transaccionales con llave entera.
-- **SQLite + EF Core** para despliegue simple en entorno académico.
+- **PostgreSQL + EF Core** para persistencia relacional en entorno académico y despliegue con Docker.
 - **Cobertura de pruebas** con xUnit, Moq y tests de integración HTTP.
 
 ---
@@ -88,7 +89,7 @@ flowchart TB
     App[BackendIntegrador.Application]
     Infra[BackendIntegrador.Infrastructure]
     Dom[BackendIntegrador.Domain]
-    Db[(SQLite)]
+    Db[(PostgreSQL)]
     OpenMeteo[Open-Meteo API]
 
     Client --> Api
@@ -562,7 +563,7 @@ Archivo principal: `src/BackendIntegrador.Api/appsettings.json`
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=integrador.db"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=integrador;Username=postgres;Password=postgres"
   },
   "JwtSettings": {
     "SecretKey": "...",
@@ -653,17 +654,41 @@ BackendIntegrador/
 
 | Aspecto | Detalle |
 |---------|---------|
-| **Motor** | SQLite |
-| **ORM** | Entity Framework Core 8 |
+| **Motor** | PostgreSQL |
+| **ORM** | Entity Framework Core 8 + Npgsql |
 | **DbContext** | `AppDbContext` |
 | **Migraciones** | Aplicadas al iniciar la API (`Database.Migrate()` en `Program.cs`) |
+
+### Connection string
+
+Para desarrollo con PostgreSQL remoto (ej. Render), copia la plantilla y crea un archivo local **no versionado**:
+
+```bash
+copy src/BackendIntegrador.Api/appsettings.Development.local.json.example src/BackendIntegrador.Api/appsettings.Development.local.json
+```
+
+Edita `appsettings.Development.local.json` con tu cadena Npgsql (Render requiere SSL):
+
+```
+Host=tu-servidor.render.com;Port=5432;Database=tu_bd;Username=tu_usuario;Password=tu_password;SSL Mode=Require;Trust Server Certificate=true
+```
+
+Ejecuta migraciones y la API con entorno Development:
+
+```powershell
+$env:ASPNETCORE_ENVIRONMENT = "Development"
+dotnet ef database update --project src/BackendIntegrador.Infrastructure --startup-project src/BackendIntegrador.Api
+```
+
+También puedes usar `ConnectionStrings__DefaultConnection` como variable de entorno.
+
+Variables Docker (`.env`): `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`. Ver [`.env.example`](.env.example).
 
 ### Migraciones existentes
 
 | Migración | Contenido |
 |-----------|-----------|
-| `20260428234424_InitialCreate` | Esquema transaccional completo |
-| `20260601003430_AddGemeloDigital` | Tablas del gemelo digital |
+| `20260609023950_InitialCreate` | Esquema completo (transaccional + gemelo digital) |
 
 ### Comandos útiles
 
@@ -704,7 +729,7 @@ dotnet test test/BackendIntegrador.IntegrationTests/BackendIntegrador.Integratio
 | Gemelo Digital | `GemeloDigitalUnitTests`, `GemeloDigitalIntegrationTests` (clima simulado) |
 | CRUD general | `CrudIntegrationTests` |
 
-Integración usa **SQLite en memoria** y `WebApplicationFactory<Program>`.
+Integración usa **PostgreSQL efímero** (Testcontainers) y `WebApplicationFactory<Program>`. Requiere **Docker** en ejecución.
 
 ---
 
@@ -713,20 +738,38 @@ Integración usa **SQLite en memoria** y `WebApplicationFactory<Program>`.
 ### Requisitos
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- PostgreSQL 14+ (local o servidor externo)
+- Connection string configurada en `appsettings.json` o variables de entorno
 
 ### Pasos
 
 ```bash
 dotnet restore
 dotnet build
+dotnet ef database update --project src/BackendIntegrador.Infrastructure --startup-project src/BackendIntegrador.Api
 dotnet run --project src/BackendIntegrador.Api/BackendIntegrador.Api.csproj
+```
+
+### Docker (API local)
+
+```bash
+copy .env.example .env
+# Ajustar POSTGRES_* (External URL de Render) y JWT_SECRET_KEY
+docker compose up -d --build
 ```
 
 | Recurso | URL |
 |---------|-----|
 | API HTTP | `http://localhost:5111` |
 | Swagger UI | `http://localhost:5111/swagger` |
-| HTTPS (perfil https) | `https://localhost:7231` |
+
+---
+
+## Despliegue en Render
+
+Guía completa paso a paso (Web Service Docker, PostgreSQL, variables de entorno, troubleshooting):
+
+**[DEPLOY_RENDER.md](DEPLOY_RENDER.md)**
 
 ### Postman
 
@@ -751,7 +794,7 @@ Importar [`BackendIntegrador.postman_collection.json`](BackendIntegrador.postman
 | Runtime | .NET 8 |
 | API | ASP.NET Core Web API |
 | ORM | Entity Framework Core 8 |
-| BD | SQLite |
+| BD | PostgreSQL |
 | Auth | JWT Bearer + BCrypt |
 | Email | MailKit (SMTP) |
 | Clima externo | Open-Meteo (HTTP) |
@@ -766,6 +809,7 @@ Importar [`BackendIntegrador.postman_collection.json`](BackendIntegrador.postman
 
 | Recurso | Descripción |
 |---------|-------------|
+| [`DEPLOY_RENDER.md`](DEPLOY_RENDER.md) | Despliegue de la API en Render con Docker y PostgreSQL |
 | [`GemeloDigital_Vision.md`](GemeloDigital_Vision.md) | Informe de visión y diseño del Gemelo Digital (conceptual + técnico) |
 | [`BackendIntegrador.postman_collection.json`](BackendIntegrador.postman_collection.json) | Colección completa de endpoints |
 | [`GemeloDigital.md`](GemeloDigital.md) | Prompt y fases del módulo gemelo digital |

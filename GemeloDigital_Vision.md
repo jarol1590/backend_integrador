@@ -107,7 +107,7 @@ Dotar al portal Control Lácteo de una capa de **inteligencia predictiva y preve
 | O2  | Proyectar volumen de producción bajo estrés térmico         | Predicción `volumen_produccion` con confianza      |
 | O3  | Alertar riesgo de acidificación por ola de calor            | Alerta `ola_calor_acidificacion` con recomendación |
 | O4  | Ofrecer vista agregada regional al centro de acopio         | Endpoint `riesgo-regional` por fincas asociadas    |
-| O5  | Integrarse sin degradar la API transaccional                | Módulo aislado, sync on-demand, misma SQLite       |
+| O5  | Integrarse sin degradar la API transaccional                | Módulo aislado, sync on-demand, misma PostgreSQL   |
 
 
 ---
@@ -290,7 +290,7 @@ El backend expone contratos JSON que el frontend del portal consumirá. A contin
 
 - Motor **heurístico** (no ML).
 - Integración **Open-Meteo** (gratuita, sin API key).
-- Persistencia en **SQLite** ampliada (4 tablas nuevas).
+- Persistencia en **PostgreSQL** ampliada (4 tablas nuevas).
 - Sincronización **on-demand** (no background job).
 - Parámetro de calidad principal para correlación: **Acidez (pH)**.
 
@@ -342,7 +342,7 @@ Se adoptó la **Opción C — Híbrido MVP en la misma solución**:
 | Decisión      | Elección                           | Justificación                            |
 | ------------- | ---------------------------------- | ---------------------------------------- |
 | Despliegue    | Módulo dentro de BackendIntegrador | Simplicidad académica; un solo artefacto |
-| Base de datos | SQLite ampliada (no InfluxDB)      | Volumen bajo; sin infra adicional        |
+| Base de datos | PostgreSQL ampliada (no InfluxDB)  | Volumen bajo; despliegue en Render       |
 | API climática | Open-Meteo                         | Gratuita, sin credenciales               |
 | Motor v1      | Heurísticas en C#                  | Rápido de implementar y explicar         |
 | Sync          | On-demand vía POST                 | No bloquea CRUD transaccional            |
@@ -439,7 +439,7 @@ sequenceDiagram
     participant OM as OpenMeteo
     participant Pred as HeuristicPredictor
     participant Alert as AlertaEvaluator
-    participant DB as SQLite
+    participant DB as PostgreSQL
 
     Client->>API: POST sincronizar
     API->>Svc: SincronizarAsync
@@ -686,7 +686,7 @@ O activar `"SeedData": { "Enabled": true }` en `appsettings.json`.
 | Tipo        | Archivo                                                                              | Qué valida                                                         |
 | ----------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
 | Unitarias   | `test/BackendIntegrador.Tests/GemeloDigitalUnitTests.cs`                             | Predictor (volumen, riesgo pH), alertas, THI                       |
-| Integración | `test/BackendIntegrador.IntegrationTests/Endpoints/GemeloDigitalIntegrationTests.cs` | Sync con `FakeClimateDataProvider`, persistencia en SQLite memoria |
+| Integración | `test/BackendIntegrador.IntegrationTests/Endpoints/GemeloDigitalIntegrationTests.cs` | Sync con `FakeClimateDataProvider`, persistencia en PostgreSQL (Testcontainers) |
 
 
 Ejecutar:

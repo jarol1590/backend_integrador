@@ -8,15 +8,10 @@ services:
       - "${API_PORT:-5111}:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
-      ConnectionStrings__DefaultConnection: "Data Source=/app/data/integrador.db"
+      ConnectionStrings__DefaultConnection: "Host=${POSTGRES_HOST};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};SSL Mode=Require;Trust Server Certificate=true"
       JwtSettings__SecretKey: "${JWT_SECRET_KEY:-this-is-a-super-secret-key-that-needs-to-be-at-least-32-characters-long}"
       JwtSettings__Issuer: "${JWT_ISSUER:-BackendIntegrador}"
       JwtSettings__Audience: "${JWT_AUDIENCE:-BackendIntegradorClients}"
       EmailSettings__Password: "${EMAIL_PASSWORD:-}"
       SeedData__Enabled: "${SEED_DATA_ENABLED:-false}"
-    volumes:
-      - sqlite-data:/app/data
     restart: unless-stopped
-
-volumes:
-  sqlite-data:

@@ -4,7 +4,7 @@ Este proyecto contiene las pruebas de integración para la API de `BackendIntegr
 
 ## Objetivo
 
-Las pruebas verifican el comportamiento de los endpoints HTTP reales contra un servidor de prueba en memoria, incluido el acceso a la base de datos SQLite en memoria y la aplicación de migraciones.
+Las pruebas verifican el comportamiento de los endpoints HTTP reales contra un servidor de prueba en memoria, incluido el acceso a PostgreSQL efímero (Testcontainers) y la aplicación de migraciones.
 
 ## Ejecutar todas las pruebas
 
@@ -41,5 +41,5 @@ dotnet test test/BackendIntegrador.IntegrationTests/BackendIntegrador.Integratio
 
 ## Notas
 
-- Las pruebas usan un `WebApplicationFactory<Program>` y una base de datos SQLite en memoria para asegurar aislamiento.
+- Las pruebas usan un `WebApplicationFactory<Program>` y un contenedor PostgreSQL efímero (Testcontainers) para asegurar aislamiento. Requiere Docker en ejecución.
 - Si agregas nuevos endpoints o cambios en el esquema de la base de datos, actualiza o agrega pruebas en `Endpoints/`.

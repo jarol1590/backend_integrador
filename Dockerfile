@@ -21,15 +21,11 @@ RUN dotnet publish src/BackendIntegrador.Api/BackendIntegrador.Api.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
-RUN mkdir -p /app/data && chown -R $APP_UID:$APP_UID /app/data
-
 ENV ASPNETCORE_URLS=http://+:8080
-ENV ASPNETCORE_ENVIRONMENT=Docker
+ENV ASPNETCORE_ENVIRONMENT=Production
 
 EXPOSE 8080
 
 COPY --from=build /app/publish .
-
-VOLUME ["/app/data"]
 
 ENTRYPOINT ["dotnet", "BackendIntegrador.Api.dll"]

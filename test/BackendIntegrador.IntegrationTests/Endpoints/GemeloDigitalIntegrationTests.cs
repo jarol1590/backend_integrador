@@ -4,8 +4,6 @@ using BackendIntegrador.Domain.Entities;
 using BackendIntegrador.Infrastructure.Persistence;
 using BackendIntegrador.IntegrationTests.Common;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -19,6 +17,7 @@ public class GemeloDigitalIntegrationTests
     public async Task SincronizarGemelo_WithCoordinates_PersistsEstadoAndLecturas()
     {
         await using var factory = new GemeloWebApplicationFactory();
+        await factory.StartAsync();
         using var client = factory.CreateClient();
         var jwtSettings = factory.Services.GetRequiredService<JwtSettings>();
         var jwt = new JwtTokenGenerator(jwtSettings.SecretKey, jwtSettings.Issuer, jwtSettings.Audience);
@@ -46,6 +45,7 @@ public class GemeloDigitalIntegrationTests
     public async Task SincronizarGemelo_WithoutCoordinates_ReturnsBadRequest()
     {
         await using var factory = new GemeloWebApplicationFactory();
+        await factory.StartAsync();
         using var client = factory.CreateClient();
         var jwtSettings = factory.Services.GetRequiredService<JwtSettings>();
         var jwt = new JwtTokenGenerator(jwtSettings.SecretKey, jwtSettings.Issuer, jwtSettings.Audience);
@@ -59,11 +59,19 @@ public class GemeloDigitalIntegrationTests
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    private static async Task<(int FincaId, int UsuarioId)> SeedFincaWithCoordsAsync(GemeloWebApplicationFactory factory)
+    private static async Task EnsureDatabaseAsync(GemeloWebApplicationFactory factory)
     {
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.EnsureCreatedAsync();
+        await db.Database.MigrateAsync();
+    }
+
+    private static async Task<(int FincaId, int UsuarioId)> SeedFincaWithCoordsAsync(GemeloWebApplicationFactory factory)
+    {
+        await EnsureDatabaseAsync(factory);
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var dep = new Departamento { Nombre = "Dep Gemelo" };
         db.Departamentos.Add(dep);
@@ -120,9 +128,10 @@ public class GemeloDigitalIntegrationTests
 
     private static async Task<(int FincaId, int UsuarioId)> SeedFincaWithoutCoordsAsync(GemeloWebApplicationFactory factory)
     {
+        await EnsureDatabaseAsync(factory);
+
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.EnsureCreatedAsync();
 
         var dep = new Departamento { Nombre = "Dep Sin Coords" };
         db.Departamentos.Add(dep);
@@ -176,43 +185,19 @@ public class GemeloDigitalIntegrationTests
     }
 }
 
-internal sealed class GemeloWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDisposable
+internal sealed class GemeloWebApplicationFactory : PostgresWebApplicationFactory
 {
-    private SqliteConnection? _connection;
-
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    protected override void ConfigureTestServices(IServiceCollection services)
     {
-        builder.ConfigureServices(services =>
+        var climateDescriptors = services
+            .Where(d => d.ServiceType == typeof(IClimateDataProvider))
+            .ToList();
+
+        foreach (var descriptor in climateDescriptors)
         {
-            var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-            if (descriptor is not null)
-                services.Remove(descriptor);
-
-            _connection = new SqliteConnection("Data Source=:memory:");
-            _connection.Open();
-
-            services.AddDbContext<AppDbContext>(options => options.UseSqlite(_connection));
-
-            var climateDescriptors = services
-                .Where(d => d.ServiceType == typeof(IClimateDataProvider))
-                .ToList();
-            foreach (var d in climateDescriptors)
-                services.Remove(d);
-
-            services.AddSingleton<IClimateDataProvider, FakeClimateDataProvider>();
-        });
-
-        builder.UseEnvironment("Test");
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_connection is not null)
-        {
-            await _connection.DisposeAsync();
-            _connection = null;
+            services.Remove(descriptor);
         }
 
-        Dispose();
+        services.AddSingleton<IClimateDataProvider, FakeClimateDataProvider>();
     }
 }

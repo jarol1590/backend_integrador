@@ -1,81 +1,44 @@
-using BackendIntegrador.Api;
 using BackendIntegrador.Application.Common;
 using BackendIntegrador.Domain.Entities;
 using BackendIntegrador.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 using System.Net.Http.Headers;
 using Xunit;
 
 namespace BackendIntegrador.IntegrationTests.Common;
 
-public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDisposable
-{
-    private SqliteConnection? _connection;
-
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.ConfigureServices(services =>
-        {
-            var descriptor = services.FirstOrDefault(d => 
-                d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-            if (descriptor != null)
-            {
-                services.Remove(descriptor);
-            }
-
-            _connection = new SqliteConnection("Data Source=:memory:");
-            _connection.Open();
-
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite(_connection));
-        });
-
-        builder.UseEnvironment("Test");
-    }
-
-    public async override ValueTask DisposeAsync()
-    {
-        if (_connection is not null)
-        {
-            await _connection.DisposeAsync();
-            _connection = null;
-        }
-
-        await base.DisposeAsync();
-    }
-}
+public class CustomWebApplicationFactory : PostgresWebApplicationFactory;
 
 public class IntegrationTestBase : IAsyncLifetime
 {
-    protected readonly HttpClient HttpClient;
     protected readonly CustomWebApplicationFactory Factory;
-    protected readonly JwtSettings JwtSettings;
-    protected readonly JwtTokenGenerator JwtTokenGenerator;
+    protected HttpClient HttpClient = null!;
+    protected JwtSettings JwtSettings = null!;
+    protected JwtTokenGenerator JwtTokenGenerator = null!;
 
     public IntegrationTestBase()
     {
         Factory = new CustomWebApplicationFactory();
-        HttpClient = Factory.CreateClient();
-        JwtSettings = Factory.Services.GetRequiredService<JwtSettings>();
-        JwtTokenGenerator = new JwtTokenGenerator(JwtSettings.SecretKey, JwtSettings.Issuer, JwtSettings.Audience);
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JwtTokenGenerator.GenerateToken(1, "test@example.com"));
     }
 
     public async Task InitializeAsync()
     {
+        await Factory.StartAsync();
+        HttpClient = Factory.CreateClient();
+        JwtSettings = Factory.Services.GetRequiredService<JwtSettings>();
+        JwtTokenGenerator = new JwtTokenGenerator(JwtSettings.SecretKey, JwtSettings.Issuer, JwtSettings.Audience);
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            JwtTokenGenerator.GenerateToken(1, "test@example.com"));
+
         using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.MigrateAsync();
     }
 
     public async Task DisposeAsync()
     {
-        HttpClient?.Dispose();
+        HttpClient.Dispose();
         await Factory.DisposeAsync();
     }
 
