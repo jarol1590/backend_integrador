@@ -13,14 +13,21 @@ public class ApiResponseFilter : IAsyncResultFilter
         {
             var statusCode = (HttpStatusCode)(objectResult.StatusCode ?? StatusCodes.Status200OK);
 
+            var success = statusCode is >= HttpStatusCode.OK and < HttpStatusCode.MultipleChoices;
+
             var apiResponse = new ApiResponse<object>
             {
-                success = statusCode is >= HttpStatusCode.OK and < HttpStatusCode.MultipleChoices,
+                success = success,
                 status = statusCode,
                 method = context.HttpContext.Request.Method,
-                errors = objectResult.Value is ValidationProblemDetails validationDetails 
-                         ? string.Join("; ", validationDetails.Errors.Select(e => $"{e.Key}: {string.Join(", ", e.Value)}"))
-                         : null,
+                errors = objectResult.Value switch
+                {
+                    ValidationProblemDetails vpd => 
+                        string.Join("; ", vpd.Errors.Select(e => $"{e.Key}: {string.Join(", ", e.Value)}")),
+                    { } obj when !success && obj is not null =>
+                        (obj as dynamic)?.message ?? (obj as dynamic)?.errors ?? null,
+                    _ => null
+                },
                 response = objectResult.Value is ValidationProblemDetails ? null : objectResult.Value
             };
 

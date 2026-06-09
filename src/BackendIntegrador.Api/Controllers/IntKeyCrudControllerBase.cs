@@ -1,6 +1,7 @@
 using BackendIntegrador.Application.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackendIntegrador.Api.Controllers;
 
@@ -52,19 +53,21 @@ public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : Contro
         try
         {
             var created = await _svc.CreateAsync(dto, cancellationToken);
-            var response = new
-            {
-                message = GetCreateSuccessMessage(),
-                data = created,
-                status = 201
-            };
-            return CreatedAtAction(nameof(GetById), new { id = _readId(created) }, response);
+            return CreatedAtAction(nameof(GetById), new { id = _readId(created) }, created);
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new
             {
                 message = ex.Message,
+                status = 400
+            });
+        }
+        catch (DbUpdateException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.InnerException?.Message ?? ex.Message,
                 status = 400
             });
         }
@@ -104,6 +107,14 @@ public abstract class IntKeyCrudControllerBase<TRead, TCreate, TUpdate> : Contro
             return BadRequest(new
             {
                 message = ex.Message,
+                status = 400
+            });
+        }
+        catch (DbUpdateException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.InnerException?.Message ?? ex.Message,
                 status = 400
             });
         }

@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using BackendIntegrador.Api.Common;
 using BackendIntegrador.Api.Filters;
 using BackendIntegrador.Api.Middleware;
 using BackendIntegrador.Application.Common;
@@ -48,6 +51,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ApiResponseFilter>();
+})
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new UtcDateTimeConverter());
 });
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>

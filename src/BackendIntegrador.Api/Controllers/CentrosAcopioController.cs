@@ -1,5 +1,6 @@
 using BackendIntegrador.Application.Abstractions;
 using BackendIntegrador.Application.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackendIntegrador.Api.Controllers;
@@ -12,4 +13,9 @@ public sealed class CentrosAcopioController : IntKeyCrudControllerBase<CentroAco
         : base(svc, c => c.CentroAcopioId)
     {
     }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public override async Task<ActionResult<IReadOnlyList<CentroAcopioDto>>> GetAll(CancellationToken cancellationToken)
+        => await base.GetAll(cancellationToken);
 }

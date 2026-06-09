@@ -76,10 +76,7 @@ public sealed class AuthController : ControllerBase
             dto,
             cancellationToken);
 
-        return Ok(new
-        {
-            message = "Código válido."
-        });
+        return Ok(new { token = dto.Token });
     }
 
     [AllowAnonymous]
