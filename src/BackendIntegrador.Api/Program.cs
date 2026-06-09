@@ -99,6 +99,14 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
+app.Logger.LogInformation(
+    "EmailSettings cargados. Server={SmtpServer}, Port={Port}, Sender={SenderEmail}, UsernameConfigured={UsernameConfigured}, PasswordConfigured={PasswordConfigured}",
+    emailSettings.SmtpServer,
+    emailSettings.Port,
+    emailSettings.SenderEmail,
+    !string.IsNullOrWhiteSpace(emailSettings.Username),
+    !string.IsNullOrWhiteSpace(emailSettings.Password));
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
