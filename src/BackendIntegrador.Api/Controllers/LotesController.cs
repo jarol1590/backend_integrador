@@ -28,6 +28,8 @@ public sealed class LotesController : IntKeyCrudControllerBase<LoteDto, CreateLo
         var lotes = await _db.Lotes
             .AsNoTracking()
             .Include(l => l.Transporte)
+            .Include(l => l.Ordeno)
+                .ThenInclude(o => o.Finca)
             .Where(l => l.CentroAcopioId == centroAcopioId
                      && l.Transporte != null
                      && l.Transporte.FechaHoraEntrada != null)
@@ -35,9 +37,10 @@ public sealed class LotesController : IntKeyCrudControllerBase<LoteDto, CreateLo
             .ToListAsync(cancellationToken);
 
         var dtos = lotes.Select(l => new LoteDto(
-            l.LoteId, l.OrdenoId, l.CentroAcopioId,
+            l.LoteId, l.Codigo, l.OrdenoId, l.CentroAcopioId,
             l.VolumenCapturadoLitros, l.TransporteId,
-            l.Transporte!.FechaHoraEntrada))
+            l.Transporte!.FechaHoraEntrada,
+            l.Ordeno.Finca.Nombre))
             .ToList() as IReadOnlyList<LoteDto>;
 
         return Ok(dtos);
@@ -72,7 +75,7 @@ public sealed class LotesController : IntKeyCrudControllerBase<LoteDto, CreateLo
         Console.WriteLine($"[DEBUG] Found {lotes.Count} lotes for finca {fincaId}");
 
         var dtos = lotes.Select(l => new LoteDto(
-            l.LoteId, l.OrdenoId, l.CentroAcopioId,
+            l.LoteId, l.Codigo, l.OrdenoId, l.CentroAcopioId,
             l.VolumenCapturadoLitros, l.TransporteId,
             l.Transporte?.FechaHoraEntrada))
             .ToList() as IReadOnlyList<LoteDto>;

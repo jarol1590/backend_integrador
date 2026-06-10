@@ -3,6 +3,7 @@ namespace BackendIntegrador.Domain.Entities;
 public class Lote
 {
     public int LoteId { get; set; }
+    public string? Codigo { get; set; }
     public int OrdenoId { get; set; }
     public int? CentroAcopioId { get; set; }
     public decimal VolumenCapturadoLitros { get; set; }

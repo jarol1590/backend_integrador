@@ -42,7 +42,7 @@ public record FincaDto(int FincaId, string Nombre, string? Direccion, decimal? L
 public record CreateFincaDto(string Nombre, string? Direccion, decimal? Latitud, decimal? Longitud, int ProductorId, int MunicipioId);
 public record UpdateFincaDto(string Nombre, string? Direccion, decimal? Latitud, decimal? Longitud, int ProductorId, int MunicipioId);
 
-public record OrdenoDto(int OrdenoId, DateTime FechaHoraInicio, DateTime? FechaHoraFin, decimal VolumenLitros, int FincaId);
+public record OrdenoDto(int OrdenoId, string? Codigo, DateTime FechaHoraInicio, DateTime? FechaHoraFin, decimal VolumenLitros, int FincaId);
 public record CreateOrdenoDto(DateTime FechaHoraInicio, DateTime? FechaHoraFin, decimal VolumenLitros, int FincaId);
 public record UpdateOrdenoDto(DateTime FechaHoraInicio, DateTime? FechaHoraFin, decimal VolumenLitros, int FincaId);
 
@@ -50,7 +50,7 @@ public record TransporteDto(int TransporteId, string PlacaVehiculo, DateTime Fec
 public record CreateTransporteDto(string PlacaVehiculo, DateTime FechaHoraSalida, DateTime? FechaHoraEntrada, int? TemperaturaInicio);
 public record UpdateTransporteDto(string PlacaVehiculo, DateTime FechaHoraSalida, DateTime? FechaHoraEntrada, int? TemperaturaInicio);
 
-public record LoteDto(int LoteId, int OrdenoId, int? CentroAcopioId, decimal VolumenCapturadoLitros, int? TransporteId, DateTime? TransporteFechaHoraEntrada);
+public record LoteDto(int LoteId, string? Codigo, int OrdenoId, int? CentroAcopioId, decimal VolumenCapturadoLitros, int? TransporteId, DateTime? TransporteFechaHoraEntrada, string? FincaNombre = null);
 public record CreateLoteDto(int OrdenoId, int? CentroAcopioId, decimal VolumenCapturadoLitros, int? TransporteId);
 public record UpdateLoteDto(int OrdenoId, int? CentroAcopioId, decimal VolumenCapturadoLitros, int? TransporteId);
 

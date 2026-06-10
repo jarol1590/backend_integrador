@@ -4,6 +4,7 @@ using BackendIntegrador.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace BackendIntegrador.Api.Controllers;
 
@@ -12,13 +13,16 @@ namespace BackendIntegrador.Api.Controllers;
 public sealed class TransportesController : IntKeyCrudControllerBase<TransporteDto, CreateTransporteDto, UpdateTransporteDto>
 {
     private readonly AppDbContext _db;
+    private readonly INotificationService _notificationService;
 
     public TransportesController(
         ICrudService<TransporteDto, CreateTransporteDto, UpdateTransporteDto> svc,
-        AppDbContext db)
+        AppDbContext db,
+        INotificationService notificationService)
         : base(svc, t => t.TransporteId)
     {
         _db = db;
+        _notificationService = notificationService;
     }
 
     [AllowAnonymous]
@@ -49,6 +53,35 @@ public sealed class TransportesController : IntKeyCrudControllerBase<TransporteD
 
         entity.FechaHoraEntrada = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            var lotesInfo = await _db.Lotes
+                .AsNoTracking()
+                .Where(l => l.TransporteId == id)
+                .Select(l => new
+                {
+                    l.Codigo,
+                    l.Ordeno.Finca.Productor.UsuarioId
+                })
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
+            foreach (var lote in lotesInfo)
+            {
+                await _notificationService.SendToUserAsync(
+                    lote.UsuarioId,
+                    "Lote entregado",
+                    $"Tu lote {lote.Codigo} ha sido entregado en el centro de acopio",
+                    new { screen = "lotes", loteId = id },
+                    cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<TransportesController>>();
+            logger.LogWarning(ex, "Failed to send push notification for completed transport {TransporteId}", id);
+        }
 
         return Ok(new TransporteDto(
             entity.TransporteId, entity.PlacaVehiculo, entity.FechaHoraSalida,

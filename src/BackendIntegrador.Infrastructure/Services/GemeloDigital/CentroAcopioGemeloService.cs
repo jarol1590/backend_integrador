@@ -60,7 +60,9 @@ public sealed class CentroAcopioGemeloService : ICentroAcopioGemeloService
                 finca.Municipio.Nombre,
                 finca.GemeloEstado?.ScoreRiesgoGlobal ?? 0,
                 alertasActivas,
-                ultimaLectura?.TempMedia));
+                ultimaLectura?.TempMedia,
+                finca.Latitud,
+                finca.Longitud));
         }
 
         var promedio = items.Count > 0

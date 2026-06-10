@@ -1,6 +1,9 @@
 using BackendIntegrador.Application.Abstractions;
 using BackendIntegrador.Application.Dtos;
 using BackendIntegrador.Domain.Entities;
+using BackendIntegrador.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace BackendIntegrador.Infrastructure.Services;
 
@@ -125,9 +128,15 @@ internal sealed class FincaCrudService : IntKeyCrudServiceBase<Finca, FincaDto, 
 
 internal sealed class OrdenoCrudService : IntKeyCrudServiceBase<Ordeno, OrdenoDto, CreateOrdenoDto, UpdateOrdenoDto>
 {
-    public OrdenoCrudService(IRepository<Ordeno> repo) : base(repo) { }
+    private readonly AppDbContext _db;
+
+    public OrdenoCrudService(IRepository<Ordeno> repo, AppDbContext db) : base(repo)
+    {
+        _db = db;
+    }
+
     protected override int GetId(Ordeno e) => e.OrdenoId;
-    protected override OrdenoDto MapRead(Ordeno e) => new(e.OrdenoId, e.FechaHoraInicio, e.FechaHoraFin, e.VolumenLitros, e.FincaId);
+    protected override OrdenoDto MapRead(Ordeno e) => new(e.OrdenoId, e.Codigo, e.FechaHoraInicio, e.FechaHoraFin, e.VolumenLitros, e.FincaId);
     protected override Ordeno MapCreate(CreateOrdenoDto d) => new()
     {
         FechaHoraInicio = d.FechaHoraInicio,
@@ -141,6 +150,19 @@ internal sealed class OrdenoCrudService : IntKeyCrudServiceBase<Ordeno, OrdenoDt
         e.FechaHoraFin = d.FechaHoraFin;
         e.VolumenLitros = d.VolumenLitros;
         e.FincaId = d.FincaId;
+    }
+
+    public override async Task<OrdenoDto> CreateAsync(CreateOrdenoDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = MapCreate(dto);
+
+        var finca = await _db.Fincas.AsNoTracking().FirstAsync(f => f.FincaId == entity.FincaId, cancellationToken);
+        var seq = await _db.Ordenos.CountAsync(o => o.FincaId == entity.FincaId, cancellationToken) + 1;
+        entity.Codigo = $"ORD-{finca.Nombre}-{seq:D3}";
+
+        _db.Ordenos.Add(entity);
+        await _db.SaveChangesAsync(cancellationToken);
+        return MapRead(entity);
     }
 }
 
@@ -167,9 +189,15 @@ internal sealed class TransporteCrudService : IntKeyCrudServiceBase<Transporte, 
 
 internal sealed class LoteCrudService : IntKeyCrudServiceBase<Lote, LoteDto, CreateLoteDto, UpdateLoteDto>
 {
-    public LoteCrudService(IRepository<Lote> repo) : base(repo) { }
+    private readonly AppDbContext _db;
+
+    public LoteCrudService(IRepository<Lote> repo, AppDbContext db) : base(repo)
+    {
+        _db = db;
+    }
+
     protected override int GetId(Lote e) => e.LoteId;
-    protected override LoteDto MapRead(Lote e) => new(e.LoteId, e.OrdenoId, e.CentroAcopioId, e.VolumenCapturadoLitros, e.TransporteId, e.Transporte?.FechaHoraEntrada);
+    protected override LoteDto MapRead(Lote e) => new(e.LoteId, e.Codigo, e.OrdenoId, e.CentroAcopioId, e.VolumenCapturadoLitros, e.TransporteId, e.Transporte?.FechaHoraEntrada);
     protected override Lote MapCreate(CreateLoteDto d) => new()
     {
         OrdenoId = d.OrdenoId,
@@ -183,6 +211,19 @@ internal sealed class LoteCrudService : IntKeyCrudServiceBase<Lote, LoteDto, Cre
         e.CentroAcopioId = d.CentroAcopioId;
         e.VolumenCapturadoLitros = d.VolumenCapturadoLitros;
         e.TransporteId = d.TransporteId;
+    }
+
+    public override async Task<LoteDto> CreateAsync(CreateLoteDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = MapCreate(dto);
+
+        var ordeno = await _db.Ordenos.Include(o => o.Finca).FirstAsync(o => o.OrdenoId == entity.OrdenoId, cancellationToken);
+        var seq = await _db.Lotes.CountAsync(l => l.Ordeno.FincaId == ordeno.FincaId, cancellationToken) + 1;
+        entity.Codigo = $"LT-{ordeno.Finca.Nombre}-{seq:D3}";
+
+        _db.Lotes.Add(entity);
+        await _db.SaveChangesAsync(cancellationToken);
+        return MapRead(entity);
     }
 }
 
@@ -232,7 +273,21 @@ internal sealed class MuestraCrudService : IntKeyCrudServiceBase<Muestra, Muestr
 
 internal sealed class AnalisisCalidadCrudService : IntKeyCrudServiceBase<AnalisisCalidad, AnalisisCalidadDto, CreateAnalisisCalidadDto, UpdateAnalisisCalidadDto>
 {
-    public AnalisisCalidadCrudService(IRepository<AnalisisCalidad> repo) : base(repo) { }
+    private readonly AppDbContext _db;
+    private readonly INotificationService _notificationService;
+    private readonly ILogger<AnalisisCalidadCrudService> _logger;
+
+    public AnalisisCalidadCrudService(
+        IRepository<AnalisisCalidad> repo,
+        AppDbContext db,
+        INotificationService notificationService,
+        ILogger<AnalisisCalidadCrudService> logger) : base(repo)
+    {
+        _db = db;
+        _notificationService = notificationService;
+        _logger = logger;
+    }
+
     protected override int GetId(AnalisisCalidad e) => e.AnalisisId;
     protected override AnalisisCalidadDto MapRead(AnalisisCalidad e) => new(e.AnalisisId, e.MuestraId, e.FechaHoraAnalisis, e.Observaciones);
     protected override AnalisisCalidad MapCreate(CreateAnalisisCalidadDto d) => new()
@@ -246,6 +301,42 @@ internal sealed class AnalisisCalidadCrudService : IntKeyCrudServiceBase<Analisi
         e.MuestraId = d.MuestraId;
         e.FechaHoraAnalisis = d.FechaHoraAnalisis;
         e.Observaciones = d.Observaciones;
+    }
+
+    public override async Task<AnalisisCalidadDto> CreateAsync(CreateAnalisisCalidadDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = MapCreate(dto);
+        _db.AnalisisCalidad.Add(entity);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            var loteInfo = await _db.Muestras
+                .AsNoTracking()
+                .Where(m => m.MuestraId == entity.MuestraId)
+                .Select(m => new
+                {
+                    m.Lote.Codigo,
+                    m.Lote.Ordeno.Finca.Productor.UsuarioId
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (loteInfo is not null)
+            {
+                await _notificationService.SendToUserAsync(
+                    loteInfo.UsuarioId,
+                    "Nuevo análisis de calidad",
+                    $"Tu lote {loteInfo.Codigo} tiene un nuevo análisis disponible",
+                    new { screen = "analisis", loteId = entity.MuestraId },
+                    cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send push notification for new analysis {AnalisisId}", entity.AnalisisId);
+        }
+
+        return MapRead(entity);
     }
 }
 

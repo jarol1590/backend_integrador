@@ -32,7 +32,7 @@ public sealed class OrdenosController : IntKeyCrudControllerBase<OrdenoDto, Crea
             .ToListAsync(cancellationToken);
 
         var dtos = ordenos.Select(o => new OrdenoDto(
-            o.OrdenoId, o.FechaHoraInicio, o.FechaHoraFin,
+            o.OrdenoId, o.Codigo, o.FechaHoraInicio, o.FechaHoraFin,
             o.VolumenLitros, o.FincaId))
             .ToList() as IReadOnlyList<OrdenoDto>;
 

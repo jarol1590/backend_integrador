@@ -74,10 +74,170 @@ public sealed class DatabaseSeeder
         var parametroAcidezId = await EnsureParametroCalidadAsync("Acidez", "pH", 4.5m, 7.5m, cancellationToken);
         await EnsureAnalisisAcidezAsync(fincaId, centroId, trabajadorUserId, parametroAcidezId, cancellationToken);
 
+        // 8) Municipios adicionales de Caldas para demo regional
+        var chinchinaId = await EnsureMunicipioAsync("Chinchiná", depId, cancellationToken);
+        var palestinaId = await EnsureMunicipioAsync("Palestina", depId, cancellationToken);
+        var villamariaId = await EnsureMunicipioAsync("Villamaría", depId, cancellationToken);
+        var ansermaId = await EnsureMunicipioAsync("Anserma", depId, cancellationToken);
+        var neiraId = await EnsureMunicipioAsync("Neira", depId, cancellationToken);
+
+        // 9) Productores + fincas demo con gemelo estado, clima y alertas
+        await SeedDemoFincaAsync(
+            "productor2@example.com", rolProductor.RolId, centroId, tipoDocId,
+            "11111111", "Carlos Gutiérrez", "3111111111",
+            "Finca La Pradera", "Vereda El Trébol", chinchinaId,
+            4.9825m, -75.6036m,
+            score: 72, sync: "synced",
+            lecturas: GenerateLecturas(7, 27.5m, 4.2m),
+            alertas: [
+                ("calor_extremo", "critica", "Ola de calor severa", "Temperaturas >32°C por 3 días consecutivos. Riesgo de estrés térmico.", "Implementar riego por aspersión y sombra adicional."),
+                ("thi", "alta", "THI crítico en ordeño", "Índice THI alcanzó 78 durante la tarde.", "Reagendar ordeños para horas más frescas (antes de 9am)."),
+            ], cancellationToken);
+
+        await SeedDemoFincaAsync(
+            "productor3@example.com", rolProductor.RolId, centroId, tipoDocId,
+            "22222222", "Ana María Restrepo", "3222222222",
+            "Finca El Paraíso", "Corregimiento Santágueda", palestinaId,
+            5.0189m, -75.6244m,
+            score: 45, sync: "synced",
+            lecturas: GenerateLecturas(7, 24.8m, 3.1m),
+            alertas: [
+                ("calor_moderado", "media", "Temperatura elevada", "Temperatura media de 28°C supera el umbral recomendado.", "Monitorear consumo de agua y proporcionar sombra."),
+            ], cancellationToken);
+
+        await SeedDemoFincaAsync(
+            "productor4@example.com", rolProductor.RolId, centroId, tipoDocId,
+            "33333333", "Pedro Hernández", "3333333333",
+            "Finca Buenos Aires", "Vereda La Cristalina", villamariaId,
+            5.0450m, -75.5170m,
+            score: 28, sync: "synced",
+            lecturas: GenerateLecturas(7, 22.1m, 1.8m),
+            alertas: [], cancellationToken);
+
+        await SeedDemoFincaAsync(
+            "productor5@example.com", rolProductor.RolId, centroId, tipoDocId,
+            "44444444", "Lucía Toro", "3444444444",
+            "Finca San José", "Vereda El Cafetal", ansermaId,
+            5.2361m, -75.7861m,
+            score: 15, sync: "synced",
+            lecturas: GenerateLecturas(7, 20.5m, 0.5m),
+            alertas: [], cancellationToken);
+
+        await SeedDemoFincaAsync(
+            "productor6@example.com", rolProductor.RolId, centroId, tipoDocId,
+            "55555555", "Jorge Ramírez", "3555555555",
+            "Finca Monteverde", "Vereda La Bella", neiraId,
+            5.1667m, -75.5167m,
+            score: 60, sync: "degradado",
+            lecturas: GenerateLecturas(7, 26.3m, 3.8m),
+            alertas: [
+                ("prediccion_calidad", "alta", "Riesgo de acidificación", "El modelo predice descenso de pH en los próximos 3 días.", "Aumentar frecuencia de análisis de acidez y separar leche de riesgo."),
+                ("volumen", "alta", "Caída de producción estimada", "Producción proyectada a disminuir 15% por estrés térmico acumulado.", "Revisar alimentación y horarios de ordeño."),
+            ], cancellationToken);
+
         await _db.SaveChangesAsync(cancellationToken);
         await LogCurrentSummaryAsync("Después de seed", cancellationToken);
 
         _logger.LogInformation("Seed completado. Credenciales demo: admin/centro/trabajador/productor con password {Password}", DefaultPassword);
+    }
+
+    private async Task SeedDemoFincaAsync(
+        string email, int rolProductorId, int? centroId, int tipoDocId,
+        string documento, string nombreProductor, string? telefono,
+        string fincaNombre, string? fincaDireccion, int municipioId,
+        decimal latitud, decimal longitud,
+        int score, string sync,
+        List<(DateOnly Fecha, decimal TempMin, decimal TempMax, decimal TempMedia, decimal? HumedadMedia, decimal? PrecipMm, decimal? ThiMax, int DiasCalor)> lecturas,
+        List<(string tipo, string severidad, string titulo, string mensaje, string? recomendacion)> alertas,
+        CancellationToken cancellationToken)
+    {
+        var usuarioId = await EnsureUsuarioAsync(email, centroId, cancellationToken);
+        await EnsureUsuarioRolAsync(usuarioId, rolProductorId, cancellationToken);
+        var productorId = await EnsureProductorAsync(usuarioId, tipoDocId, documento, nombreProductor, telefono, cancellationToken);
+        var fincaId = await EnsureFincaAsync(productorId, municipioId, fincaNombre, fincaDireccion, latitud, longitud, cancellationToken);
+
+        // Gemelo estado
+        var existsEstado = await _db.FincasGemeloEstado.AnyAsync(e => e.FincaId == fincaId, cancellationToken);
+        if (!existsEstado)
+        {
+            _db.FincasGemeloEstado.Add(new FincaGemeloEstado
+            {
+                FincaId = fincaId,
+                ScoreRiesgoGlobal = score,
+                EstadoSync = sync,
+                VersionMotor = "1.0.0",
+                FuenteClima = "open-meteo",
+                CreadoUtc = DateTime.UtcNow.AddDays(-30),
+                ActualizadoUtc = DateTime.UtcNow,
+                UltimaSyncUtc = DateTime.UtcNow.AddHours(-new Random().Next(1, 12)),
+            });
+        }
+
+        // Lecturas climáticas
+        foreach (var l in lecturas)
+        {
+            var existsLectura = await _db.LecturasClimaticas.AnyAsync(lc => lc.FincaId == fincaId && lc.Fecha == l.Fecha, cancellationToken);
+            if (!existsLectura)
+            {
+                _db.LecturasClimaticas.Add(new LecturaClimatica
+                {
+                    FincaId = fincaId,
+                    Fecha = l.Fecha,
+                    TempMin = l.TempMin,
+                    TempMax = l.TempMax,
+                    TempMedia = l.TempMedia,
+                    HumedadMedia = l.HumedadMedia,
+                    PrecipitacionMm = l.PrecipMm,
+                    ThiMax = l.ThiMax,
+                    DiasConsecutivosCalor = l.DiasCalor,
+                    Fuente = "open-meteo",
+                });
+            }
+        }
+
+        // Alertas
+        foreach (var a in alertas)
+        {
+            var existsAlerta = await _db.AlertasGemelo.AnyAsync(al =>
+                al.FincaId == fincaId && al.Titulo == a.titulo && !al.Leida, cancellationToken);
+            if (!existsAlerta)
+            {
+                _db.AlertasGemelo.Add(new AlertaGemelo
+                {
+                    FincaId = fincaId,
+                    TipoAlerta = a.tipo,
+                    Severidad = a.severidad,
+                    Titulo = a.titulo,
+                    Mensaje = a.mensaje,
+                    Recomendacion = a.recomendacion,
+                    CreadaUtc = DateTime.UtcNow.AddDays(-new Random().Next(0, 3)),
+                    ExpiraUtc = DateTime.UtcNow.AddDays(new Random().Next(3, 10)),
+                });
+            }
+        }
+    }
+
+    private static List<(DateOnly Fecha, decimal TempMin, decimal TempMax, decimal TempMedia, decimal? HumedadMedia, decimal? PrecipMm, decimal? ThiMax, int DiasCalor)> GenerateLecturas(
+        int days, decimal baseTemp, decimal variacion)
+    {
+        var rng = new Random();
+        var lecturas = new List<(DateOnly, decimal, decimal, decimal, decimal?, decimal?, decimal?, int)>();
+        for (var i = days - 1; i >= 0; i--)
+        {
+            var fecha = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-i));
+            var tempMedia = baseTemp + (decimal)rng.NextDouble() * variacion * 2m - variacion;
+            var tempMin = tempMedia - 4m - (decimal)(rng.NextDouble() * 2);
+            var tempMax = tempMedia + 4m + (decimal)(rng.NextDouble() * 2);
+            var humedad = 65m + (decimal)(rng.NextDouble() * 20);
+            var precip = i % 3 == 0 ? 2m + (decimal)(rng.NextDouble() * 8) : 0m;
+            var thi = tempMedia > 24m
+                ? tempMedia + 0.36m * humedad + 46.4m
+                : (decimal?)null;
+            var diasCalor = tempMedia > 26m ? 1 + (i % 3) : 0;
+            lecturas.Add((fecha, Math.Round(tempMin, 1), Math.Round(tempMax, 1), Math.Round(tempMedia, 1),
+                Math.Round(humedad, 0), Math.Round(precip, 1), thi.HasValue ? Math.Round(thi.Value, 0) : null, diasCalor));
+        }
+        return lecturas;
     }
 
     private async Task LogCurrentSummaryAsync(string title, CancellationToken cancellationToken)

@@ -16,12 +16,14 @@ namespace BackendIntegrador.Tests
     public class TransportesControllerUnitTests
     {
         private readonly Mock<ICrudService<TransporteDto, CreateTransporteDto, UpdateTransporteDto>> _mockSvc;
+        private readonly Mock<INotificationService> _mockNotif;
         private readonly TransportesController _controller;
 
         public TransportesControllerUnitTests()
         {
             _mockSvc = new Mock<ICrudService<TransporteDto, CreateTransporteDto, UpdateTransporteDto>>();
-            _controller = new TransportesController(_mockSvc.Object, null!);
+            _mockNotif = new Mock<INotificationService>();
+            _controller = new TransportesController(_mockSvc.Object, null!, _mockNotif.Object);
         }
 
         [Fact]

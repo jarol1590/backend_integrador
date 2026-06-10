@@ -20,7 +20,7 @@ namespace BackendIntegrador.Tests
         public CentrosAcopioControllerUnitTests()
         {
             _mockSvc = new Mock<ICrudService<CentroAcopioDto, CreateCentroAcopioDto, UpdateCentroAcopioDto>>();
-            _controller = new CentrosAcopioController(_mockSvc.Object);
+            _controller = new CentrosAcopioController(_mockSvc.Object, null!);
         }
 
         [Fact]

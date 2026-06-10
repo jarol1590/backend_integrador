@@ -8,6 +8,7 @@ using BackendIntegrador.Infrastructure.Services.Seeding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace BackendIntegrador.Infrastructure;
 
@@ -67,6 +68,11 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<INotificationService, PushNotificationService>();
+        services.AddHttpClient<INotificationService, PushNotificationService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
         services.AddScoped<DatabaseSeeder>();
 
         return services;

@@ -44,7 +44,7 @@ namespace BackendIntegrador.Tests
         [Fact]
         public async Task GetAll_ReturnsOk()
         {
-            var list = new List<LoteDto>{ new LoteDto(1,1,1,10m,null,null) };
+            var list = new List<LoteDto>{ new LoteDto(1,null,1,1,10m,null,null) };
             _mockSvc.Setup(s => s.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
             var action = await _controller.GetAll(CancellationToken.None);
             var ok = action.Result as OkObjectResult; ok.Should().NotBeNull(); ok!.Value.Should().BeEquivalentTo(list);
@@ -53,7 +53,7 @@ namespace BackendIntegrador.Tests
         [Fact]
         public async Task GetById_ReturnsOk()
         {
-            var item = new LoteDto(1,1,1,10m,null,null);
+            var item = new LoteDto(1,null,1,1,10m,null,null);
             _mockSvc.Setup(s => s.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(item);
             var action = await _controller.GetById(1, CancellationToken.None);
             var ok = action.Result as OkObjectResult; ok.Should().NotBeNull(); ok!.Value.Should().BeEquivalentTo(item);

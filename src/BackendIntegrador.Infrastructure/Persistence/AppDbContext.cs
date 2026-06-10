@@ -31,6 +31,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<LecturaClimatica> LecturasClimaticas => Set<LecturaClimatica>();
     public DbSet<PrediccionGemelo> PrediccionesGemelo => Set<PrediccionGemelo>();
     public DbSet<AlertaGemelo> AlertasGemelo => Set<AlertaGemelo>();
+    public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -121,6 +122,8 @@ public sealed class AppDbContext : DbContext
 
         modelBuilder.Entity<Ordeno>(e =>
         {
+            e.Property(o => o.Codigo).HasMaxLength(64);
+            e.HasIndex(o => o.Codigo).IsUnique();
             e.Property(o => o.VolumenLitros).HasPrecision(18, 4);
             e.HasOne(o => o.Finca).WithMany(f => f.Ordenos).HasForeignKey(o => o.FincaId);
         });
@@ -133,6 +136,8 @@ public sealed class AppDbContext : DbContext
 
         modelBuilder.Entity<Lote>(e =>
         {
+            e.Property(l => l.Codigo).HasMaxLength(64);
+            e.HasIndex(l => l.Codigo).IsUnique();
             e.Property(l => l.VolumenCapturadoLitros).HasPrecision(18, 4);
             e.HasOne(l => l.Ordeno).WithMany(o => o.Lotes).HasForeignKey(l => l.OrdenoId);
             e.HasOne(l => l.CentroAcopio).WithMany(c => c.Lotes).HasForeignKey(l => l.CentroAcopioId).IsRequired(false);
@@ -215,6 +220,15 @@ public sealed class AppDbContext : DbContext
             e.Property(a => a.Mensaje).HasMaxLength(1024);
             e.Property(a => a.Recomendacion).HasMaxLength(1024);
             e.HasOne(a => a.Finca).WithMany(f => f.AlertasGemelo).HasForeignKey(a => a.FincaId);
+        });
+
+        modelBuilder.Entity<DeviceToken>(e =>
+        {
+            e.HasKey(dt => dt.Id);
+            e.HasIndex(dt => new { dt.UsuarioId, dt.Token }).IsUnique();
+            e.Property(dt => dt.Token).HasMaxLength(512);
+            e.Property(dt => dt.Platform).HasMaxLength(16);
+            e.HasOne(dt => dt.Usuario).WithMany().HasForeignKey(dt => dt.UsuarioId);
         });
 
         foreach (var fk in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))

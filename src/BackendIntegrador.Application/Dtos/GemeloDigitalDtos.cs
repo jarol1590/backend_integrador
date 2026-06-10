@@ -65,7 +65,9 @@ public record RiesgoRegionalFincaDto(
     string MunicipioNombre,
     int ScoreRiesgoGlobal,
     int AlertasActivas,
-    decimal? TempMediaReciente);
+    decimal? TempMediaReciente,
+    decimal? Latitud,
+    decimal? Longitud);
 
 public record CentroAcopioRiesgoRegionalDto(
     int CentroAcopioId,

@@ -102,6 +102,16 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
@@ -139,6 +149,8 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseCors();
 
 app.UseHttpsRedirection();
 

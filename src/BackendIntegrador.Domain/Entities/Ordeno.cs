@@ -3,6 +3,7 @@ namespace BackendIntegrador.Domain.Entities;
 public class Ordeno
 {
     public int OrdenoId { get; set; }
+    public string? Codigo { get; set; }
     public DateTime FechaHoraInicio { get; set; }
     public DateTime? FechaHoraFin { get; set; }
     public decimal VolumenLitros { get; set; }
